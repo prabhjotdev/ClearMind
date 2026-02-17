@@ -1,0 +1,103 @@
+.week-view {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.week-view-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.week-view-nav-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+}
+
+.week-view-nav-btn:hover {
+  background: var(--color-bg-primary);
+}
+
+.week-view-date {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-align: center;
+}
+
+.week-view-today-pill {
+  display: block;
+  margin: 0 auto var(--space-md);
+  padding: var(--space-xs) var(--space-lg);
+  background: var(--color-p3);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.week-view-toggle {
+  display: flex;
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  margin-bottom: var(--space-xl);
+}
+
+.week-view-toggle-btn {
+  flex: 1;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-align: center;
+  transition: all var(--duration-fast) var(--easing-default);
+  min-height: 36px;
+}
+
+.week-view-toggle-btn--active {
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-card);
+}
+
+.week-view-section {
+  margin-bottom: var(--space-xl);
+}
+
+.week-view-section-header {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
+  padding-left: var(--space-xs);
+}
+
+.week-view-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.week-view-empty {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-lg);
+  color: var(--color-text-secondary);
+}
+
+.week-view-empty p {
+  font-size: var(--font-size-base);
+  margin-bottom: var(--space-xs);
+}
+
+.week-view-empty-sub {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

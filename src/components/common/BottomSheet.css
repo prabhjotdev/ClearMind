@@ -1,0 +1,57 @@
+.bottom-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg-overlay);
+  z-index: 60;
+  animation: overlay-enter var(--duration-normal) var(--easing-default);
+}
+
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 90vh;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-sheet);
+  z-index: 70;
+  overflow-y: auto;
+  animation: sheet-enter var(--duration-normal) var(--easing-default);
+}
+
+@media (min-width: 768px) {
+  .bottom-sheet {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: 480px;
+    max-height: 85vh;
+    border-radius: var(--radius-lg);
+    bottom: 50%;
+    transform: translate(-50%, 50%);
+  }
+}
+
+@keyframes overlay-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sheet-enter {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (min-width: 768px) {
+  @keyframes sheet-enter {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 50%) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 50%) scale(1);
+    }
+  }
+}

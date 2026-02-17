@@ -1,0 +1,214 @@
+.month-view {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.month-view-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.month-view-nav-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+}
+
+.month-view-nav-btn:hover {
+  background: var(--color-bg-primary);
+}
+
+.month-view-date {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.month-view-today-pill {
+  display: block;
+  margin: 0 auto var(--space-md);
+  padding: var(--space-xs) var(--space-lg);
+  background: var(--color-p3);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.month-view-toggle {
+  display: flex;
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  margin-bottom: var(--space-xl);
+}
+
+.month-view-toggle-btn {
+  flex: 1;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-align: center;
+  transition: all var(--duration-fast) var(--easing-default);
+  min-height: 36px;
+}
+
+.month-view-toggle-btn--active {
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-card);
+}
+
+/* ─── Heatmap Grid ─── */
+.month-view-grid {
+  margin-bottom: var(--space-lg);
+}
+
+.month-view-grid-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.month-view-grid-header {
+  margin-bottom: var(--space-sm);
+}
+
+.month-view-grid-header-cell {
+  text-align: center;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: var(--space-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.month-view-cell {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--easing-default);
+  min-height: 44px;
+}
+
+.month-view-cell:hover {
+  background: var(--color-bg-primary);
+}
+
+.month-view-cell--outside {
+  opacity: 0.3;
+}
+
+.month-view-cell--today {
+  outline: 2px solid var(--color-p3);
+  outline-offset: -2px;
+  font-weight: 700;
+}
+
+.month-view-cell-date {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.month-view-cell-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+}
+
+/* ─── Legend ─── */
+.month-view-legend {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+  padding: var(--space-md) 0;
+}
+
+.month-view-legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.month-view-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+}
+
+/* ─── Deadlines ─── */
+.month-view-deadline-section {
+  margin-bottom: var(--space-xl);
+}
+
+.month-view-deadline-day {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.month-view-deadline-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.month-view-deadline-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+}
+
+.month-view-deadline-dot {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  border-radius: var(--radius-full);
+}
+
+.month-view-deadline-name {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.month-view-deadline-time {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* ─── Empty ─── */
+.month-view-empty {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-lg);
+  color: var(--color-text-secondary);
+}
+
+.month-view-empty-sub {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

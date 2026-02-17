@@ -1,0 +1,28 @@
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-main-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  padding: var(--space-lg);
+  padding-bottom: calc(var(--bottom-nav-height) + var(--space-lg) + env(safe-area-inset-bottom, 0px));
+}
+
+/* On tablet+, offset for sidebar */
+@media (min-width: 768px) {
+  .app-main-wrapper {
+    margin-left: var(--sidebar-width);
+  }
+
+  .app-main {
+    padding: var(--space-xl);
+    padding-bottom: var(--space-xl);
+    max-width: 900px;
+  }
+}
