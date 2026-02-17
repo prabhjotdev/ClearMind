@@ -1,0 +1,206 @@
+.notification-panel {
+  position: absolute;
+  top: calc(var(--header-height) - 4px);
+  right: var(--space-md);
+  width: 360px;
+  max-width: calc(100vw - var(--space-lg) * 2);
+  max-height: 480px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: notif-panel-in var(--duration-normal) var(--easing-default);
+}
+
+@keyframes notif-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.notification-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.notification-panel-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.notification-panel-close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.notification-panel-close:hover {
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+}
+
+.notification-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.notification-panel-empty {
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.notification-panel-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Notification Item ─── */
+
+.notification-item {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item--sent {
+  background: var(--color-overdue-bg);
+}
+
+.notification-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.notification-item-badge {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.notification-item-badge--sent {
+  background: var(--color-error);
+  color: white;
+}
+
+.notification-item-badge--snoozed {
+  background: var(--color-p2);
+  color: white;
+}
+
+.notification-item-badge--scheduled {
+  background: var(--color-p3);
+  color: white;
+}
+
+.notification-item-time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.notification-item-task {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+
+.notification-item-offset {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.notification-item-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.notification-item-action {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-p3);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+}
+
+.notification-item-action:hover {
+  background: var(--color-bg-primary);
+}
+
+.notification-item-action--dismiss {
+  color: var(--color-text-muted);
+}
+
+.notification-item-action--dismiss:hover {
+  color: var(--color-error);
+}
+
+.notification-item-snooze-maxed {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.notification-item-snooze-options {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.notification-item-snooze-btn {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  background: var(--color-text-primary);
+  color: white;
+}
+
+.notification-item-snooze-btn:hover {
+  opacity: 0.85;
+}
+
+.notification-item-snooze-cancel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.notification-item-snooze-cancel:hover {
+  color: var(--color-text-secondary);
+}

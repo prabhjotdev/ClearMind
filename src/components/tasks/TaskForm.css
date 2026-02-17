@@ -156,3 +156,128 @@
 .task-form-submit:hover {
   opacity: 0.9;
 }
+
+/* ─── Reminder Picker ─── */
+
+.task-form-reminder-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.task-form-reminder-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.task-form-reminder-icon {
+  font-size: var(--font-size-sm);
+}
+
+.task-form-reminder-label {
+  flex: 1;
+  color: var(--color-text-primary);
+}
+
+.task-form-reminder-remove {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.task-form-reminder-remove:hover {
+  background: var(--color-border);
+  color: var(--color-error);
+}
+
+.task-form-reminder-add {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-p3);
+  padding: var(--space-sm) 0;
+}
+
+.task-form-reminder-add:disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.task-form-reminder-hint {
+  font-weight: 400;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.task-form-reminder-picker {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-bg-card);
+}
+
+.task-form-reminder-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.task-form-reminder-picker-close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.task-form-reminder-picker-close:hover {
+  background: var(--color-bg-primary);
+}
+
+.task-form-reminder-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+  min-height: 44px;
+}
+
+.task-form-reminder-option:last-child {
+  border-bottom: none;
+}
+
+.task-form-reminder-option:hover {
+  background: var(--color-bg-primary);
+}
+
+.task-form-reminder-option--disabled {
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+.task-form-reminder-option--disabled:hover {
+  background: transparent;
+}

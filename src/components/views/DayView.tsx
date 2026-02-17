@@ -15,7 +15,12 @@ import {
   createTask,
   updateTask,
 } from '../../services/taskService';
+import {
+  scheduleRemindersForTask,
+  cancelRemindersForTask,
+} from '../../services/reminderService';
 import { subscribeToCategories, createDefaultCategories } from '../../services/categoryService';
+import { requestNotificationPermission } from '../../services/notificationService';
 import { Task, Category, Priority, PRIORITY_CONFIG, TaskFormData } from '../../types';
 import TaskCard from '../tasks/TaskCard';
 import TaskForm from '../tasks/TaskForm';
@@ -67,7 +72,7 @@ export default function DayView() {
 
   async function handleComplete(taskId: string) {
     if (!userId) return;
-    const task = tasks.find((t) => t.id === taskId);
+    const task = tasks.find((t) => t.id === taskId) || overdueTasks.find((t) => t.id === taskId);
     if (!task) return;
 
     if (task.status === 'completed') {
@@ -75,6 +80,8 @@ export default function DayView() {
       showToast(`"${task.name}" restored`);
     } else {
       await completeTask(userId, taskId);
+      // Cancel any pending reminders
+      await cancelRemindersForTask(userId, taskId);
       showToast(`"${task.name}" completed`, () => uncompleteTask(userId, taskId));
     }
   }
@@ -85,6 +92,8 @@ export default function DayView() {
     if (!task) return;
 
     await softDeleteTask(userId, taskId);
+    // Cancel any pending reminders
+    await cancelRemindersForTask(userId, taskId);
     showToast(`"${task.name}" deleted`, () => restoreTask(userId, taskId));
     setSelectedTask(null);
   }
@@ -96,7 +105,23 @@ export default function DayView() {
       ...formData,
       dueDate: formData.dueDate || currentDate,
     };
-    await createTask(userId, data);
+    const taskId = await createTask(userId, data);
+
+    // Schedule reminders if task has date+time and reminders
+    const taskDate = data.dueDate;
+    if (taskDate && data.dueTime && data.reminders.length > 0) {
+      // Request notification permission on first reminder creation
+      await requestNotificationPermission(userId);
+      await scheduleRemindersForTask(
+        userId,
+        taskId,
+        data.name,
+        taskDate instanceof Date ? taskDate : new Date(taskDate),
+        data.dueTime,
+        data.reminders
+      );
+    }
+
     setShowCreateForm(false);
     showToast('Task created');
   }
@@ -104,6 +129,23 @@ export default function DayView() {
   async function handleEdit(formData: TaskFormData) {
     if (!userId || !editingTask) return;
     await updateTask(userId, editingTask.id, formData);
+
+    // Re-schedule reminders
+    const taskDate = formData.dueDate;
+    if (taskDate && formData.dueTime && formData.reminders.length > 0) {
+      await scheduleRemindersForTask(
+        userId,
+        editingTask.id,
+        formData.name,
+        taskDate,
+        formData.dueTime,
+        formData.reminders
+      );
+    } else {
+      // No reminders — cancel any existing
+      await cancelRemindersForTask(userId, editingTask.id);
+    }
+
     setEditingTask(null);
     setSelectedTask(null);
     showToast('Task updated');

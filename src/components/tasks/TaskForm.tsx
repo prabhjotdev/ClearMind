@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { TaskFormData, Category, Priority, RepeatMode } from '../../types';
+import { TaskFormData, Category, Priority, RepeatMode, ReminderOffset } from '../../types';
+import { REMINDER_OFFSET_OPTIONS } from '../../services/reminderService';
 import './TaskForm.css';
 
 interface TaskFormProps {
@@ -39,13 +40,26 @@ export default function TaskForm({
   );
   const [dueTime, setDueTime] = useState(initialData?.dueTime || '');
   const [repeat, setRepeat] = useState<RepeatMode>(initialData?.repeat || 'none');
+  const [reminders, setReminders] = useState<ReminderOffset[]>(initialData?.reminders || []);
+  const [showReminderPicker, setShowReminderPicker] = useState(false);
   const [showMore, setShowMore] = useState(
-    !!(initialData?.description || initialData?.dueDate || initialData?.priority !== 'P3' || initialData?.repeat !== 'none')
+    !!(initialData?.description || initialData?.dueDate || initialData?.priority !== 'P3' || initialData?.repeat !== 'none' || (initialData?.reminders && initialData.reminders.length > 0))
   );
   const [error, setError] = useState('');
 
   function formatDateForInput(date: Date): string {
     return date.toISOString().split('T')[0];
+  }
+
+  function addReminder(offsetMinutes: number) {
+    // Don't add duplicates
+    if (reminders.some((r) => r.offsetMinutes === offsetMinutes)) return;
+    setReminders([...reminders, { offsetMinutes, type: 'both' }]);
+    setShowReminderPicker(false);
+  }
+
+  function removeReminder(offsetMinutes: number) {
+    setReminders(reminders.filter((r) => r.offsetMinutes !== offsetMinutes));
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -70,9 +84,14 @@ export default function TaskForm({
       dueDate: dueDate ? new Date(dueDate + 'T00:00:00') : null,
       dueTime: dueTime || null,
       repeat,
-      reminders: [],
+      reminders,
     });
   }
+
+  // Available reminder options (exclude already-added ones)
+  const availableReminderOptions = REMINDER_OFFSET_OPTIONS.filter(
+    (opt) => !reminders.some((r) => r.offsetMinutes === opt.value)
+  );
 
   return (
     <form onSubmit={handleSubmit} className="task-form">
@@ -204,6 +223,85 @@ export default function TaskForm({
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Reminders */}
+          <div className="task-form-field">
+            <label className="task-form-label">Reminders</label>
+
+            {/* Existing reminders */}
+            {reminders.length > 0 && (
+              <div className="task-form-reminder-list">
+                {reminders.map((r) => {
+                  const option = REMINDER_OFFSET_OPTIONS.find(
+                    (o) => o.value === r.offsetMinutes
+                  );
+                  return (
+                    <div key={r.offsetMinutes} className="task-form-reminder-item">
+                      <span className="task-form-reminder-icon" aria-hidden="true">🔔</span>
+                      <span className="task-form-reminder-label">
+                        {option?.label || `${r.offsetMinutes}m before`}
+                      </span>
+                      <button
+                        type="button"
+                        className="task-form-reminder-remove"
+                        onClick={() => removeReminder(r.offsetMinutes)}
+                        aria-label={`Remove reminder: ${option?.label}`}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Add reminder button / picker */}
+            {!showReminderPicker ? (
+              <button
+                type="button"
+                className="task-form-reminder-add"
+                onClick={() => setShowReminderPicker(true)}
+                disabled={!dueDate || !dueTime}
+              >
+                + Add reminder
+                {(!dueDate || !dueTime) && (
+                  <span className="task-form-reminder-hint">
+                    (set date & time first)
+                  </span>
+                )}
+              </button>
+            ) : (
+              <div className="task-form-reminder-picker" role="listbox" aria-label="Choose reminder time">
+                <div className="task-form-reminder-picker-header">
+                  <span>When should we remind you?</span>
+                  <button
+                    type="button"
+                    className="task-form-reminder-picker-close"
+                    onClick={() => setShowReminderPicker(false)}
+                    aria-label="Close reminder picker"
+                  >
+                    ✕
+                  </button>
+                </div>
+                {availableReminderOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    role="option"
+                    className="task-form-reminder-option"
+                    onClick={() => addReminder(opt.value)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+                {availableReminderOptions.length === 0 && (
+                  <div className="task-form-reminder-option task-form-reminder-option--disabled">
+                    All reminder options added
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <button
