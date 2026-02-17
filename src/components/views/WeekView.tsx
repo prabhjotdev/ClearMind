@@ -20,6 +20,7 @@ import {
   groupTasksByPriority,
   sortTasksByPriority,
 } from '../../services/taskService';
+import { cancelRemindersForTask } from '../../services/reminderService';
 import { subscribeToCategories } from '../../services/categoryService';
 import { Task, Category, Priority, PRIORITY_CONFIG } from '../../types';
 import TaskCard from '../tasks/TaskCard';
@@ -65,6 +66,7 @@ export default function WeekView() {
       await uncompleteTask(userId, taskId);
     } else {
       await completeTask(userId, taskId);
+      await cancelRemindersForTask(userId, taskId);
       showToast(`"${task.name}" completed`, () => uncompleteTask(userId, taskId));
     }
   }
@@ -74,6 +76,7 @@ export default function WeekView() {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
     await softDeleteTask(userId, taskId);
+    await cancelRemindersForTask(userId, taskId);
     showToast(`"${task.name}" deleted`, () => restoreTask(userId, taskId));
     setSelectedTask(null);
   }

@@ -29,3 +29,5 @@ yarn-error.log*
 
 # Firebase
 .firebase/
+functions/lib/
+functions/node_modules/
