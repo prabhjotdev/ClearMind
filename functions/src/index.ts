@@ -85,7 +85,7 @@ export const processReminders = functions.pubsub
           };
 
           notifications.push(
-            messaging.send(message).catch((error) => {
+            messaging.send(message).catch((error: Error) => {
               functions.logger.error(
                 `Failed to send notification to user ${userId}:`,
                 error
@@ -144,8 +144,8 @@ export const cleanupReminders = functions.pubsub
     }
 
     const batch = db.batch();
-    oldReminders.docs.forEach((doc) => {
-      batch.delete(doc.ref);
+    oldReminders.docs.forEach((reminderDoc: FirebaseFirestore.QueryDocumentSnapshot) => {
+      batch.delete(reminderDoc.ref);
     });
 
     await batch.commit();
