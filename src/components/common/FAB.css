@@ -1,0 +1,33 @@
+.fab {
+  position: fixed;
+  bottom: calc(var(--bottom-nav-height) + var(--space-lg) + env(safe-area-inset-bottom, 0px));
+  right: var(--space-lg);
+  width: var(--fab-size);
+  height: var(--fab-size);
+  border-radius: var(--radius-full);
+  background: var(--color-p3);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-fab);
+  z-index: 40;
+  transition: transform var(--duration-fast) var(--easing-default),
+              box-shadow var(--duration-fast) var(--easing-default);
+}
+
+.fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+@media (min-width: 768px) {
+  .fab {
+    bottom: var(--space-xl);
+    right: var(--space-xl);
+  }
+}
