@@ -3,6 +3,13 @@
   margin: 0 auto;
 }
 
+/* Expand container when calendar grid is showing on tablet+ */
+@media (min-width: 768px) {
+  .week-view {
+    max-width: 960px;
+  }
+}
+
 .week-view-nav {
   display: flex;
   align-items: center;
@@ -92,6 +99,11 @@
   color: var(--color-text-secondary);
 }
 
+.week-view-empty-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-md);
+}
+
 .week-view-empty p {
   font-size: var(--font-size-base);
   margin-bottom: var(--space-xs);
@@ -100,4 +112,19 @@
 .week-view-empty-sub {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+}
+
+.week-view-empty-cta {
+  display: inline-block;
+  margin-top: var(--space-lg);
+  padding: var(--space-sm) var(--space-xl);
+  background: var(--color-text-primary);
+  color: white;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.week-view-empty-cta:hover {
+  opacity: 0.9;
 }

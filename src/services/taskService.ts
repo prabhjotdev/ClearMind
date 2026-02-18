@@ -123,6 +123,19 @@ export async function rescheduleTask(
   });
 }
 
+export async function rescheduleTaskWithTime(
+  userId: string,
+  taskId: string,
+  newDate: Date,
+  newTime: string | null
+): Promise<void> {
+  await updateDoc(taskDoc(userId, taskId), {
+    dueDate: Timestamp.fromDate(startOfDay(newDate)),
+    dueTime: newTime,
+    updatedAt: Timestamp.now(),
+  });
+}
+
 export async function rescheduleOverdueTasks(
   userId: string,
   taskIds: string[],
