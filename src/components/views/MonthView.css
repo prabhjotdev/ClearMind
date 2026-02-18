@@ -1,6 +1,7 @@
 .month-view {
   max-width: 600px;
   margin: 0 auto;
+  touch-action: pan-y;
 }
 
 .month-view-nav {
@@ -99,15 +100,20 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background var(--duration-fast) var(--easing-default);
   min-height: 44px;
+  position: relative;
 }
 
 .month-view-cell:hover {
   background: var(--color-bg-primary);
+}
+
+.month-view-cell--has-tasks:hover {
+  transform: scale(1.05);
 }
 
 .month-view-cell--outside {
@@ -129,6 +135,44 @@
   width: 8px;
   height: 8px;
   border-radius: var(--radius-full);
+}
+
+.month-view-cell-count {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+/* ─── Tooltip ─── */
+.month-view-tooltip {
+  position: fixed;
+  transform: translate(-50%, -100%);
+  background: var(--color-text-primary);
+  color: white;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: tooltip-fade-in var(--duration-fast) var(--easing-default);
+}
+
+.month-view-tooltip strong {
+  font-weight: 700;
+}
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -100%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -100%) translateY(0);
+  }
 }
 
 /* ─── Legend ─── */
@@ -206,6 +250,16 @@
   text-align: center;
   padding: var(--space-2xl) var(--space-lg);
   color: var(--color-text-secondary);
+}
+
+.month-view-empty-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-md);
+}
+
+.month-view-empty p {
+  font-size: var(--font-size-base);
+  margin-bottom: var(--space-xs);
 }
 
 .month-view-empty-sub {
