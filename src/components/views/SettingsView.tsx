@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 import { subscribeToSettings, updateSettings, initializeSettings } from '../../services/settingsService';
+import { deleteAllTasks } from '../../services/taskService';
+import {
+  generateJSONExport,
+  generateCSVExport,
+  downloadFile,
+  todayDateString,
+  ExportScope,
+} from '../../services/importExportService';
 import { UserSettings, DEFAULT_SETTINGS } from '../../types';
+import ImportModal from '../settings/ImportModal';
 import './SettingsView.css';
 
 export default function SettingsView() {
@@ -13,6 +22,16 @@ export default function SettingsView() {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const { canInstall, isInstalled, promptInstall } = usePWAInstall();
 
+  // Export / Import / Delete state
+  const [exportScope, setExportScope] = useState<ExportScope>('all');
+  const [exportingJSON, setExportingJSON] = useState(false);
+  const [exportingCSV, setExportingCSV] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const deleteInputRef = useRef<HTMLInputElement>(null);
+
   const userId = currentUser?.uid;
 
   useEffect(() => {
@@ -21,6 +40,13 @@ export default function SettingsView() {
     return subscribeToSettings(userId, setSettings);
   }, [userId]);
 
+  // Focus the delete confirmation input when it appears
+  useEffect(() => {
+    if (showDeleteConfirm) {
+      setTimeout(() => deleteInputRef.current?.focus(), 50);
+    }
+  }, [showDeleteConfirm]);
+
   async function handleSettingChange(key: keyof UserSettings, value: unknown) {
     if (!userId) return;
     await updateSettings(userId, { [key]: value });
@@ -28,6 +54,62 @@ export default function SettingsView() {
 
   function toggleSection(section: string) {
     setExpandedSection((prev) => (prev === section ? null : section));
+  }
+
+  // ─── Export handlers ───────────────────────────────────────
+
+  async function handleExportJSON() {
+    if (!userId || !currentUser) return;
+    setExportingJSON(true);
+    try {
+      const json = await generateJSONExport(
+        userId,
+        exportScope,
+        currentUser.email ?? '',
+        settings
+      );
+      const filename = `clearmind-export-${todayDateString()}.json`;
+      downloadFile(json, filename, 'application/json');
+      const count = JSON.parse(json).tasks.length;
+      showToast(`Exported ${count} task${count !== 1 ? 's' : ''}.`);
+    } catch {
+      showToast('Export failed. Please try again.');
+    } finally {
+      setExportingJSON(false);
+    }
+  }
+
+  async function handleExportCSV() {
+    if (!userId || !currentUser) return;
+    setExportingCSV(true);
+    try {
+      const csv = await generateCSVExport(userId, exportScope, currentUser.email ?? '');
+      const filename = `clearmind-export-${todayDateString()}.csv`;
+      downloadFile(csv, filename, 'text/csv;charset=utf-8;');
+      const lines = csv.split('\n').length - 1; // subtract header
+      showToast(`Exported ${lines} task${lines !== 1 ? 's' : ''}.`);
+    } catch {
+      showToast('Export failed. Please try again.');
+    } finally {
+      setExportingCSV(false);
+    }
+  }
+
+  // ─── Delete all handler ────────────────────────────────────
+
+  async function handleDeleteAll() {
+    if (!userId || deleteConfirmText !== 'DELETE') return;
+    setDeleting(true);
+    try {
+      await deleteAllTasks(userId);
+      showToast('All tasks deleted.');
+      setShowDeleteConfirm(false);
+      setDeleteConfirmText('');
+    } catch {
+      showToast('Delete failed. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -243,32 +325,99 @@ export default function SettingsView() {
         </button>
         {expandedSection === 'data' && (
           <div className="settings-card">
+            {/* Export scope selector */}
+            <label className="settings-toggle-row">
+              <span>Export scope</span>
+              <select
+                className="settings-input-small"
+                value={exportScope}
+                onChange={(e) => setExportScope(e.target.value as ExportScope)}
+              >
+                <option value="all">All tasks</option>
+                <option value="active">Active only</option>
+              </select>
+            </label>
+
+            {/* JSON export */}
             <div className="settings-toggle-row">
-              <span>Export tasks (JSON)</span>
+              <span>Export as JSON</span>
               <button
                 className="settings-btn"
-                onClick={() => showToast('Export coming in v1')}
+                onClick={handleExportJSON}
+                disabled={exportingJSON}
               >
-                Export
+                {exportingJSON ? 'Exporting…' : 'Export'}
               </button>
             </div>
+
+            {/* CSV export */}
             <div className="settings-toggle-row">
-              <span>Export tasks (CSV)</span>
+              <span>Export as CSV</span>
               <button
                 className="settings-btn"
-                onClick={() => showToast('Export coming in v1')}
+                onClick={handleExportCSV}
+                disabled={exportingCSV}
               >
-                Export
+                {exportingCSV ? 'Exporting…' : 'Export'}
               </button>
             </div>
+
+            {/* Import */}
             <div className="settings-toggle-row">
               <span>Import tasks</span>
               <button
                 className="settings-btn"
-                onClick={() => showToast('Import coming in v1')}
+                onClick={() => setShowImportModal(true)}
               >
                 Import
               </button>
+            </div>
+
+            {/* Delete all */}
+            <div className="settings-delete-zone">
+              {!showDeleteConfirm ? (
+                <button
+                  className="settings-btn settings-btn--danger"
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  Delete All Tasks
+                </button>
+              ) : (
+                <div className="settings-delete-confirm">
+                  <p className="settings-delete-warning">
+                    This will permanently delete all your tasks and cannot be undone.
+                    Type <strong>DELETE</strong> to confirm.
+                  </p>
+                  <input
+                    ref={deleteInputRef}
+                    type="text"
+                    className="settings-delete-input"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    placeholder="Type DELETE"
+                    aria-label="Type DELETE to confirm"
+                  />
+                  <div className="settings-delete-actions">
+                    <button
+                      className="settings-btn"
+                      onClick={() => {
+                        setShowDeleteConfirm(false);
+                        setDeleteConfirmText('');
+                      }}
+                      disabled={deleting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="settings-btn settings-btn--danger"
+                      onClick={handleDeleteAll}
+                      disabled={deleteConfirmText !== 'DELETE' || deleting}
+                    >
+                      {deleting ? 'Deleting…' : 'Delete All'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -304,6 +453,22 @@ export default function SettingsView() {
           </div>
         </div>
       </section>
+
+      {/* Import modal */}
+      {showImportModal && userId && (
+        <ImportModal
+          userId={userId}
+          onClose={() => setShowImportModal(false)}
+          onImported={({ imported, skipped }) => {
+            setShowImportModal(false);
+            showToast(
+              skipped > 0
+                ? `Imported ${imported} task${imported !== 1 ? 's' : ''}, skipped ${skipped} duplicate${skipped !== 1 ? 's' : ''}.`
+                : `Imported ${imported} task${imported !== 1 ? 's' : ''}.`
+            );
+          }}
+        />
+      )}
     </div>
   );
 }

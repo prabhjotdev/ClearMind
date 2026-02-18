@@ -149,3 +149,80 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
 }
+
+.settings-btn--primary {
+  background: var(--color-p3);
+  color: white;
+  border-color: var(--color-p3);
+}
+
+.settings-btn--primary:hover {
+  opacity: 0.9;
+}
+
+.settings-btn--danger {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.settings-btn--danger:hover {
+  background: var(--color-overdue-bg);
+}
+
+.settings-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.settings-install-card {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.settings-install-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Delete all tasks zone */
+
+.settings-delete-zone {
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+.settings-delete-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.settings-delete-warning {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  margin: 0;
+}
+
+.settings-delete-input {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.settings-delete-input:focus {
+  outline: 2px solid var(--color-error);
+  outline-offset: 2px;
+}
+
+.settings-delete-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+}

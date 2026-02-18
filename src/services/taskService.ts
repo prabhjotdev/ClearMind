@@ -3,10 +3,12 @@ import {
   doc,
   addDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
   onSnapshot,
+  getDocs,
   Timestamp,
   writeBatch,
 } from 'firebase/firestore';
@@ -272,4 +274,38 @@ export function groupTasksByPriority(tasks: Task[]): Record<Priority, Task[]> {
     groups[task.priority].push(task);
   });
   return groups;
+}
+
+// ─── Export / Delete ──────────────────────────────────────────
+
+export async function getAllTasksForExport(
+  userId: string,
+  scope: 'all' | 'active'
+): Promise<Task[]> {
+  const statusFilter =
+    scope === 'active' ? ['active'] : ['active', 'completed'];
+
+  const q = query(
+    tasksCollection(userId),
+    where('status', 'in', statusFilter),
+    orderBy('createdAt', 'asc')
+  );
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as Task[];
+}
+
+export async function deleteAllTasks(userId: string): Promise<void> {
+  const snapshot = await getDocs(tasksCollection(userId));
+  if (snapshot.empty) return;
+
+  // Firestore batch limit is 500 operations
+  const BATCH_SIZE = 500;
+  const docs = snapshot.docs;
+
+  for (let i = 0; i < docs.length; i += BATCH_SIZE) {
+    const batch = writeBatch(db);
+    docs.slice(i, i + BATCH_SIZE).forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  }
 }
