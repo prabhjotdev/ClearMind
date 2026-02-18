@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { format, addDays, subDays, isToday, startOfDay } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import { useAuth } from '../../contexts/AuthContext';
@@ -19,12 +19,19 @@ import {
   scheduleRemindersForTask,
   cancelRemindersForTask,
 } from '../../services/reminderService';
+import {
+  generateRepeatInstances,
+  updateFutureInstances,
+  stopRepeatSeries,
+  fillRepeatWindowForUser,
+} from '../../services/repeatService';
 import { subscribeToCategories, createDefaultCategories } from '../../services/categoryService';
 import { requestNotificationPermission } from '../../services/notificationService';
 import { Task, Category, Priority, PRIORITY_CONFIG, TaskFormData } from '../../types';
 import TaskCard from '../tasks/TaskCard';
 import TaskForm from '../tasks/TaskForm';
 import TaskDetail from '../tasks/TaskDetail';
+import RepeatEditDialog, { RepeatEditChoice } from '../tasks/RepeatEditDialog';
 import BottomSheet from '../common/BottomSheet';
 import FAB from '../common/FAB';
 import './DayView.css';
@@ -39,7 +46,10 @@ export default function DayView() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [repeatChoiceTask, setRepeatChoiceTask] = useState<Task | null>(null);
+  const [editAllFuture, setEditAllFuture] = useState(false);
   const [showOverdue, setShowOverdue] = useState(true);
+  const repeatWindowFilledRef = useRef(false);
 
   const userId = currentUser?.uid;
 
@@ -48,6 +58,19 @@ export default function DayView() {
     if (!userId) return;
     createDefaultCategories(userId);
     return subscribeToCategories(userId, setCategories);
+  }, [userId]);
+
+  // Fill the repeat rolling window on first load (client-side replacement for Cloud Function)
+  useEffect(() => {
+    if (!userId || repeatWindowFilledRef.current) return;
+    repeatWindowFilledRef.current = true;
+    fillRepeatWindowForUser(userId).then((count) => {
+      if (count > 0) {
+        console.log(`Generated ${count} repeat instances`);
+      }
+    }).catch((err) => {
+      console.error('Error filling repeat window:', err);
+    });
   }, [userId]);
 
   // Load tasks for current date
@@ -80,7 +103,6 @@ export default function DayView() {
       showToast(`"${task.name}" restored`);
     } else {
       await completeTask(userId, taskId);
-      // Cancel any pending reminders
       await cancelRemindersForTask(userId, taskId);
       showToast(`"${task.name}" completed`, () => uncompleteTask(userId, taskId));
     }
@@ -92,7 +114,6 @@ export default function DayView() {
     if (!task) return;
 
     await softDeleteTask(userId, taskId);
-    // Cancel any pending reminders
     await cancelRemindersForTask(userId, taskId);
     showToast(`"${task.name}" deleted`, () => restoreTask(userId, taskId));
     setSelectedTask(null);
@@ -100,7 +121,6 @@ export default function DayView() {
 
   async function handleCreate(formData: TaskFormData) {
     if (!userId) return;
-    // Default due date to current view date if none specified
     const data = {
       ...formData,
       dueDate: formData.dueDate || currentDate,
@@ -110,7 +130,6 @@ export default function DayView() {
     // Schedule reminders if task has date+time and reminders
     const taskDate = data.dueDate;
     if (taskDate && data.dueTime && data.reminders.length > 0) {
-      // Request notification permission on first reminder creation
       await requestNotificationPermission(userId);
       await scheduleRemindersForTask(
         userId,
@@ -122,13 +141,83 @@ export default function DayView() {
       );
     }
 
+    // Generate repeat instances if repeating
+    if (data.repeat !== 'none' && data.dueDate) {
+      const fakeTask: Task = {
+        id: taskId,
+        name: data.name,
+        description: data.description,
+        priority: data.priority,
+        categoryId: data.categoryId,
+        dueDate: Timestamp.fromDate(startOfDay(data.dueDate)),
+        dueTime: data.dueTime,
+        repeat: data.repeat,
+        repeatSeriesId: taskId,
+        repeatOriginalDate: Timestamp.fromDate(startOfDay(data.dueDate)),
+        status: 'active',
+        completedAt: null,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+        createdBy: userId,
+      };
+      const count = await generateRepeatInstances(userId, fakeTask);
+      if (count > 0) {
+        showToast(`Task created with ${count} upcoming occurrences`);
+        return;
+      }
+    }
+
     setShowCreateForm(false);
     showToast('Task created');
   }
 
+  // When user taps "Edit" on a repeating task, show the choice dialog
+  function handleEditRequest(task: Task) {
+    if (task.repeat !== 'none' && task.repeatSeriesId) {
+      setRepeatChoiceTask(task);
+    } else {
+      setEditingTask(task);
+    }
+  }
+
+  async function handleRepeatChoice(choice: RepeatEditChoice) {
+    if (!userId || !repeatChoiceTask) return;
+
+    if (choice === 'this') {
+      setEditAllFuture(false);
+      setEditingTask(repeatChoiceTask);
+      setRepeatChoiceTask(null);
+    } else if (choice === 'all_future') {
+      setEditAllFuture(true);
+      setEditingTask(repeatChoiceTask);
+      setRepeatChoiceTask(null);
+    } else if (choice === 'stop') {
+      const seriesId = repeatChoiceTask.repeatSeriesId || repeatChoiceTask.id;
+      const deleted = await stopRepeatSeries(userId, repeatChoiceTask.id, seriesId);
+      setRepeatChoiceTask(null);
+      setSelectedTask(null);
+      showToast(`Repeat stopped. ${deleted} future task(s) removed.`);
+    }
+  }
+
   async function handleEdit(formData: TaskFormData) {
     if (!userId || !editingTask) return;
+
     await updateTask(userId, editingTask.id, formData);
+
+    // If editing all future instances of a repeat series
+    if (editAllFuture && editingTask.repeatSeriesId) {
+      await updateFutureInstances(userId, editingTask.repeatSeriesId, {
+        name: formData.name,
+        description: formData.description,
+        priority: formData.priority,
+        categoryId: formData.categoryId,
+        dueTime: formData.dueTime,
+      });
+      showToast('All future tasks updated');
+    } else {
+      showToast('Task updated');
+    }
 
     // Re-schedule reminders
     const taskDate = formData.dueDate;
@@ -142,13 +231,12 @@ export default function DayView() {
         formData.reminders
       );
     } else {
-      // No reminders — cancel any existing
       await cancelRemindersForTask(userId, editingTask.id);
     }
 
     setEditingTask(null);
+    setEditAllFuture(false);
     setSelectedTask(null);
-    showToast('Task updated');
   }
 
   async function handleRescheduleOverdue() {
@@ -347,7 +435,7 @@ export default function DayView() {
 
       {/* Task Detail Sheet */}
       <BottomSheet
-        isOpen={!!selectedTask && !editingTask}
+        isOpen={!!selectedTask && !editingTask && !repeatChoiceTask}
         onClose={() => setSelectedTask(null)}
         ariaLabel="Task details"
       >
@@ -356,9 +444,24 @@ export default function DayView() {
             task={selectedTask}
             category={getCategoryForTask(selectedTask)}
             onComplete={() => handleComplete(selectedTask.id)}
-            onEdit={() => setEditingTask(selectedTask)}
+            onEdit={() => handleEditRequest(selectedTask)}
             onDelete={() => handleDelete(selectedTask.id)}
             onClose={() => setSelectedTask(null)}
+          />
+        )}
+      </BottomSheet>
+
+      {/* Repeat Edit Choice Dialog */}
+      <BottomSheet
+        isOpen={!!repeatChoiceTask}
+        onClose={() => setRepeatChoiceTask(null)}
+        ariaLabel="Edit repeating task options"
+      >
+        {repeatChoiceTask && (
+          <RepeatEditDialog
+            taskName={repeatChoiceTask.name}
+            onChoice={handleRepeatChoice}
+            onCancel={() => setRepeatChoiceTask(null)}
           />
         )}
       </BottomSheet>
@@ -366,7 +469,7 @@ export default function DayView() {
       {/* Edit Task Sheet */}
       <BottomSheet
         isOpen={!!editingTask}
-        onClose={() => setEditingTask(null)}
+        onClose={() => { setEditingTask(null); setEditAllFuture(false); }}
         ariaLabel="Edit task"
       >
         {editingTask && (
@@ -382,8 +485,8 @@ export default function DayView() {
               repeat: editingTask.repeat,
             }}
             onSubmit={handleEdit}
-            onCancel={() => setEditingTask(null)}
-            submitLabel="Save Changes"
+            onCancel={() => { setEditingTask(null); setEditAllFuture(false); }}
+            submitLabel={editAllFuture ? 'Save All Future' : 'Save Changes'}
           />
         )}
       </BottomSheet>

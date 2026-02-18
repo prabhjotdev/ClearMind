@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
@@ -6,6 +6,7 @@ import AppShell from './components/layout/AppShell';
 import LoginPage from './components/auth/LoginPage';
 import SignupPage from './components/auth/SignupPage';
 import ResetPasswordPage from './components/auth/ResetPasswordPage';
+import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import DayView from './components/views/DayView';
 import WeekView from './components/views/WeekView';
 import MonthView from './components/views/MonthView';
@@ -32,10 +33,17 @@ function LoadingScreen() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { currentUser, loading } = useAuth();
+  const { currentUser, userProfile, loading } = useAuth();
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
 
   if (loading) return <LoadingScreen />;
   if (!currentUser) return <Navigate to="/login" replace />;
+
+  // Show onboarding for new users
+  if (userProfile && !userProfile.onboardingCompleted && !onboardingDismissed) {
+    return <OnboardingFlow onComplete={() => setOnboardingDismissed(true)} />;
+  }
+
   return <>{children}</>;
 }
 

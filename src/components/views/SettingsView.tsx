@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
+import { usePWAInstall } from '../../hooks/usePWAInstall';
 import { subscribeToSettings, updateSettings, initializeSettings } from '../../services/settingsService';
 import { UserSettings, DEFAULT_SETTINGS } from '../../types';
 import './SettingsView.css';
@@ -10,6 +11,7 @@ export default function SettingsView() {
   const { showToast } = useToast();
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const { canInstall, isInstalled, promptInstall } = usePWAInstall();
 
   const userId = currentUser?.uid;
 
@@ -272,11 +274,34 @@ export default function SettingsView() {
         )}
       </section>
 
+      {/* Install App */}
+      {canInstall && (
+        <section className="settings-section">
+          <div className="settings-card settings-install-card">
+            <p className="settings-install-text">
+              Install ClearMind for quick access and offline support.
+            </p>
+            <button
+              className="settings-btn settings-btn--primary"
+              onClick={async () => {
+                const accepted = await promptInstall();
+                showToast(accepted ? 'App installed!' : 'Install cancelled');
+              }}
+            >
+              Install App
+            </button>
+          </div>
+        </section>
+      )}
+
       {/* About */}
       <section className="settings-section">
         <h3 className="settings-section-title">About</h3>
         <div className="settings-card">
-          <div className="settings-about-row">Version 0.1.0 (MVP)</div>
+          <div className="settings-about-row">
+            Version 0.1.0 (MVP)
+            {isInstalled && ' · Installed'}
+          </div>
         </div>
       </section>
     </div>
