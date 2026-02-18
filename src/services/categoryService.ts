@@ -65,6 +65,12 @@ export async function deleteCategory(
   await deleteDoc(catDoc);
 }
 
+export async function getAllCategories(userId: string): Promise<Category[]> {
+  const q = query(categoriesCollection(userId), orderBy('order', 'asc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as Category[];
+}
+
 export function subscribeToCategories(
   userId: string,
   callback: (categories: Category[]) => void
