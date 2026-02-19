@@ -21,7 +21,7 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait",
   "theme_color": "#FAFAFA",
   "background_color": "#FAFAFA",
   "categories": ["productivity", "utilities"]
