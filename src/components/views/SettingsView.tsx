@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
-import { subscribeToSettings, updateSettings, initializeSettings } from '../../services/settingsService';
 import { deleteAllTasks } from '../../services/taskService';
 import {
   generateJSONExport,
@@ -11,14 +10,14 @@ import {
   todayDateString,
   ExportScope,
 } from '../../services/importExportService';
-import { UserSettings, DEFAULT_SETTINGS } from '../../types';
+import { useSettings } from '../../contexts/SettingsContext';
 import ImportModal from '../settings/ImportModal';
 import './SettingsView.css';
 
 export default function SettingsView() {
   const { currentUser, signOut } = useAuth();
   const { showToast } = useToast();
-  const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
+  const { settings, updateSetting } = useSettings();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const { canInstall, isInstalled, promptInstall } = usePWAInstall();
 
@@ -34,23 +33,12 @@ export default function SettingsView() {
 
   const userId = currentUser?.uid;
 
-  useEffect(() => {
-    if (!userId) return;
-    initializeSettings(userId);
-    return subscribeToSettings(userId, setSettings);
-  }, [userId]);
-
   // Focus the delete confirmation input when it appears
   useEffect(() => {
     if (showDeleteConfirm) {
       setTimeout(() => deleteInputRef.current?.focus(), 50);
     }
   }, [showDeleteConfirm]);
-
-  async function handleSettingChange(key: keyof UserSettings, value: unknown) {
-    if (!userId) return;
-    await updateSettings(userId, { [key]: value });
-  }
 
   function toggleSection(section: string) {
     setExpandedSection((prev) => (prev === section ? null : section));
@@ -166,7 +154,7 @@ export default function SettingsView() {
                 className="settings-checkbox"
                 checked={settings.pushNotificationsEnabled}
                 onChange={(e) =>
-                  handleSettingChange('pushNotificationsEnabled', e.target.checked)
+                  updateSetting('pushNotificationsEnabled', e.target.checked)
                 }
               />
             </label>
@@ -177,7 +165,7 @@ export default function SettingsView() {
                 className="settings-checkbox"
                 checked={settings.inAppNotificationsEnabled}
                 onChange={(e) =>
-                  handleSettingChange('inAppNotificationsEnabled', e.target.checked)
+                  updateSetting('inAppNotificationsEnabled', e.target.checked)
                 }
               />
             </label>
@@ -188,7 +176,7 @@ export default function SettingsView() {
                 className="settings-checkbox"
                 checked={settings.dailyDigestEnabled}
                 onChange={(e) =>
-                  handleSettingChange('dailyDigestEnabled', e.target.checked)
+                  updateSetting('dailyDigestEnabled', e.target.checked)
                 }
               />
             </label>
@@ -200,7 +188,7 @@ export default function SettingsView() {
                   className="settings-input-small"
                   value={settings.dailyDigestTime}
                   onChange={(e) =>
-                    handleSettingChange('dailyDigestTime', e.target.value)
+                    updateSetting('dailyDigestTime', e.target.value)
                   }
                 />
               </label>
@@ -230,7 +218,7 @@ export default function SettingsView() {
                 step={5}
                 value={settings.fontSize}
                 onChange={(e) =>
-                  handleSettingChange('fontSize', parseInt(e.target.value))
+                  updateSetting('fontSize', parseInt(e.target.value))
                 }
               />
             </label>
@@ -241,7 +229,7 @@ export default function SettingsView() {
                 className="settings-checkbox"
                 checked={settings.reducedMotion}
                 onChange={(e) =>
-                  handleSettingChange('reducedMotion', e.target.checked)
+                  updateSetting('reducedMotion', e.target.checked)
                 }
               />
             </label>
@@ -252,7 +240,7 @@ export default function SettingsView() {
                 className="settings-checkbox"
                 checked={settings.highContrast}
                 onChange={(e) =>
-                  handleSettingChange('highContrast', e.target.checked)
+                  updateSetting('highContrast', e.target.checked)
                 }
               />
             </label>
@@ -280,7 +268,7 @@ export default function SettingsView() {
                 max={20}
                 value={settings.heatmapThresholdHigh}
                 onChange={(e) =>
-                  handleSettingChange('heatmapThresholdHigh', parseInt(e.target.value) || 5)
+                  updateSetting('heatmapThresholdHigh', parseInt(e.target.value) || 5)
                 }
               />
             </label>
@@ -293,7 +281,7 @@ export default function SettingsView() {
                 max={20}
                 value={settings.heatmapThresholdMedium}
                 onChange={(e) =>
-                  handleSettingChange('heatmapThresholdMedium', parseInt(e.target.value) || 3)
+                  updateSetting('heatmapThresholdMedium', parseInt(e.target.value) || 3)
                 }
               />
             </label>
@@ -303,7 +291,7 @@ export default function SettingsView() {
                 className="settings-input-small"
                 value={settings.weekStartsOn}
                 onChange={(e) =>
-                  handleSettingChange('weekStartsOn', e.target.value)
+                  updateSetting('weekStartsOn', e.target.value)
                 }
               >
                 <option value="monday">Monday</option>
