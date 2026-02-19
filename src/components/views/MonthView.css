@@ -245,6 +245,19 @@
   white-space: nowrap;
 }
 
+/* ─── Skeleton ─── */
+.month-view-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.month-view-skeleton-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-xs);
+}
+
 /* ─── Empty ─── */
 .month-view-empty {
   text-align: center;

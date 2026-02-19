@@ -36,6 +36,7 @@ import RepeatEditDialog, { RepeatEditChoice } from '../tasks/RepeatEditDialog';
 import WeeklyCalendarGrid from './WeeklyCalendarGrid';
 import BottomSheet from '../common/BottomSheet';
 import FAB from '../common/FAB';
+import { TaskListSkeleton } from '../common/Skeleton';
 import './WeekView.css';
 
 type SubView = 'calendar' | 'list' | 'deadlines';
@@ -45,6 +46,7 @@ export default function WeekView() {
   const { showToast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subView, setSubView] = useState<SubView>('list');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -65,7 +67,11 @@ export default function WeekView() {
 
   useEffect(() => {
     if (!userId) return;
-    return subscribeToTasksForWeek(userId, currentDate, 1, setTasks);
+    setLoading(true);
+    return subscribeToTasksForWeek(userId, currentDate, 1, (newTasks) => {
+      setTasks(newTasks);
+      setLoading(false);
+    });
   }, [userId, currentDate]);
 
   const getCategoryForTask = useCallback(
@@ -270,8 +276,11 @@ export default function WeekView() {
         </button>
       </div>
 
+      {/* Skeleton loading */}
+      {loading && <TaskListSkeleton rows={4} />}
+
       {/* Calendar Sub-View */}
-      {subView === 'calendar' && (
+      {!loading && subView === 'calendar' && (
         <div role="tabpanel">
           {/* Shown on tablet+ */}
           <WeeklyCalendarGrid
@@ -291,7 +300,7 @@ export default function WeekView() {
       )}
 
       {/* List Sub-View */}
-      {subView === 'list' && (
+      {!loading && subView === 'list' && (
         <div role="tabpanel">
           {((['P1', 'P2', 'P3'] as Priority[]).map((priority) => {
             const group = grouped[priority];
@@ -336,7 +345,7 @@ export default function WeekView() {
       )}
 
       {/* Deadlines Sub-View */}
-      {subView === 'deadlines' && (
+      {!loading && subView === 'deadlines' && (
         <div role="tabpanel">
           {deadlinesByDay.map(({ date, tasks: dayTasks }) => (
             <section key={date.toISOString()} className="week-view-section">

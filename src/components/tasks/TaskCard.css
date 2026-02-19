@@ -1,3 +1,22 @@
+/* ─── Enter animation ──────────────────────────────────────── */
+
+@keyframes task-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes check-pop {
+  0%   { transform: scale(0.6); }
+  60%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
 .task-card {
   display: flex;
   align-items: flex-start;
@@ -9,7 +28,9 @@
   border-left: 4px solid var(--priority-color, var(--color-p3));
   cursor: pointer;
   transition: box-shadow var(--duration-fast) var(--easing-default),
-              opacity var(--duration-fast) var(--easing-default);
+              opacity var(--duration-normal) var(--easing-default),
+              transform var(--duration-normal) var(--easing-default);
+  animation: task-card-enter var(--duration-normal) var(--easing-default) both;
 }
 
 .task-card:hover {
@@ -42,6 +63,7 @@
 .task-card--completed .task-card-checkbox {
   background: var(--color-success);
   border-color: var(--color-success);
+  animation: check-pop var(--duration-fast) var(--easing-default) both;
 }
 
 .task-card-checkbox:hover {
@@ -87,4 +109,15 @@
 
 .task-card-icon {
   font-size: var(--font-size-sm);
+}
+
+/* Respect reduced-motion preference (also covered by the CSS variable approach
+   in variables.css which sets --duration-* to 0ms, but explicit is clearer) */
+@media (prefers-reduced-motion: reduce) {
+  .task-card {
+    animation: none;
+  }
+  .task-card--completed .task-card-checkbox {
+    animation: none;
+  }
 }

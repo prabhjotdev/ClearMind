@@ -18,6 +18,7 @@ import { subscribeToTasksForMonth } from '../../services/taskService';
 import { subscribeToCategories } from '../../services/categoryService';
 import { subscribeToSettings, initializeSettings } from '../../services/settingsService';
 import { Task, Category, PRIORITY_CONFIG, UserSettings, DEFAULT_SETTINGS } from '../../types';
+import { Skeleton } from '../common/Skeleton';
 import './MonthView.css';
 
 type SubView = 'heatmap' | 'deadlines';
@@ -27,6 +28,7 @@ export default function MonthView() {
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [subView, setSubView] = useState<SubView>('heatmap');
@@ -60,7 +62,11 @@ export default function MonthView() {
 
   useEffect(() => {
     if (!userId) return;
-    return subscribeToTasksForMonth(userId, currentDate, setTasks);
+    setLoading(true);
+    return subscribeToTasksForMonth(userId, currentDate, (newTasks) => {
+      setTasks(newTasks);
+      setLoading(false);
+    });
   }, [userId, currentDate]);
 
   const activeTasks = tasks.filter((t) => t.status === 'active');
@@ -234,8 +240,26 @@ export default function MonthView() {
         </button>
       </div>
 
+      {/* Skeleton loading — show grid placeholder while tasks load */}
+      {loading && (
+        <div className="month-view-skeleton" aria-label="Loading…" aria-busy="true">
+          {Array.from({ length: 5 }).map((_, rowIdx) => (
+            <div key={rowIdx} className="month-view-skeleton-row">
+              {Array.from({ length: 7 }).map((_, colIdx) => (
+                <Skeleton
+                  key={colIdx}
+                  width="100%"
+                  height="48px"
+                  borderRadius="var(--radius-sm)"
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Heatmap */}
-      {subView === 'heatmap' && (
+      {!loading && subView === 'heatmap' && (
         <div role="tabpanel">
           {totalActiveTasks > 0 ? (
             <>
@@ -317,7 +341,7 @@ export default function MonthView() {
       )}
 
       {/* Deadlines Sub-View */}
-      {subView === 'deadlines' && (
+      {!loading && subView === 'deadlines' && (
         <div role="tabpanel">
           {deadlinesByDay.map(({ date, tasks: dayTasks }) => (
             <section key={date.toISOString()} className="month-view-deadline-section">

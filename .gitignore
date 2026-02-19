@@ -31,3 +31,8 @@ yarn-error.log*
 .firebase/
 functions/lib/
 functions/node_modules/
+
+# Cypress
+cypress/screenshots
+cypress/videos
+cypress/downloads

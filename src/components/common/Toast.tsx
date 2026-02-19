@@ -5,6 +5,7 @@ export interface ToastMessage {
   id: string;
   text: string;
   undoAction?: () => void;
+  actionLabel?: string; // defaults to "Undo"
   duration?: number;
 }
 
@@ -49,7 +50,7 @@ function ToastItem({
             dismiss();
           }}
         >
-          Undo
+          {message.actionLabel ?? 'Undo'}
         </button>
       )}
     </div>

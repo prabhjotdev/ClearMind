@@ -65,6 +65,37 @@
   background: var(--color-bg-primary);
 }
 
+/* ─── Sync Indicator ─── */
+
+.app-header-sync {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+}
+
+.app-header-sync--syncing {
+  color: var(--color-p3);
+  animation: sync-pulse 1.2s ease-in-out infinite;
+}
+
+.app-header-sync--offline {
+  color: var(--color-error);
+}
+
+@keyframes sync-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-header-sync--syncing {
+    animation: none;
+  }
+}
+
 /* ─── Bell Icon ─── */
 
 .app-header-bell {
