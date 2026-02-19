@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { SyncProvider } from './contexts/SyncContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import AppShell from './components/layout/AppShell';
 import LoginPage from './components/auth/LoginPage';
 import SignupPage from './components/auth/SignupPage';
@@ -88,7 +89,9 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
           <SyncProvider>
-            <AppRoutes />
+            <SettingsProvider>
+              <AppRoutes />
+            </SettingsProvider>
           </SyncProvider>
         </ToastProvider>
       </AuthProvider>

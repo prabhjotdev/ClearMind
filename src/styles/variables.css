@@ -74,11 +74,37 @@
   --fab-mini-size: 48px;
 }
 
-/* Reduced motion */
+/* Reduced motion — system preference */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --duration-fast: 0ms;
     --duration-normal: 0ms;
     --duration-slow: 0ms;
   }
+}
+
+/* Reduced motion — user setting */
+html[data-reduced-motion] {
+  --duration-fast: 0ms;
+  --duration-normal: 0ms;
+  --duration-slow: 0ms;
+}
+
+/* High contrast — user setting */
+html[data-high-contrast] {
+  --color-text-primary: #000000;
+  --color-text-secondary: #111111;
+  --color-text-muted: #333333;
+  --color-bg-primary: #FFFFFF;
+  --color-bg-card: #FFFFFF;
+  --color-border: #000000;
+  --color-border-focus: #0000CC;
+  --color-p1: #DC2626;
+  --color-p2: #D97706;
+  --color-p3: #2563EB;
+  --color-p1-bg: #FEE2E2;
+  --color-p2-bg: #FEF3C7;
+  --color-p3-bg: #DBEAFE;
+  --shadow-card: 0 0 0 1px #000000;
+  --shadow-card-hover: 0 0 0 2px #000000;
 }
