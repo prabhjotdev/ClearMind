@@ -1,6 +1,6 @@
 /* ClearMind Service Worker — static asset caching */
 
-const CACHE_NAME = 'clearmind-v1';
+const CACHE_NAME = 'clearmind-v2';
 
 // Assets to pre-cache on install
 const PRECACHE_URLS = [
@@ -10,6 +10,8 @@ const PRECACHE_URLS = [
   '/favicon.ico',
   '/logo192.png',
   '/logo512.png',
+  '/logo512-maskable.png',
+  '/apple-touch-icon.png',
 ];
 
 // ─── Install ──────────────────────────────────────────────────
