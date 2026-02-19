@@ -34,6 +34,7 @@ import TaskDetail from '../tasks/TaskDetail';
 import RepeatEditDialog, { RepeatEditChoice } from '../tasks/RepeatEditDialog';
 import BottomSheet from '../common/BottomSheet';
 import FAB from '../common/FAB';
+import { TaskListSkeleton } from '../common/Skeleton';
 import './DayView.css';
 
 export default function DayView() {
@@ -41,6 +42,7 @@ export default function DayView() {
   const { showToast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
   const [overdueTasks, setOverdueTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -76,7 +78,11 @@ export default function DayView() {
   // Load tasks for current date
   useEffect(() => {
     if (!userId) return;
-    return subscribeToTasksForDate(userId, currentDate, setTasks);
+    setLoading(true);
+    return subscribeToTasksForDate(userId, currentDate, (newTasks) => {
+      setTasks(newTasks);
+      setLoading(false);
+    });
   }, [userId, currentDate]);
 
   // Load overdue tasks (only when viewing today)
@@ -315,8 +321,16 @@ export default function DayView() {
         )}
       </div>
 
+      {/* Skeleton loading */}
+      {loading && (
+        <>
+          <TaskListSkeleton rows={2} />
+          <TaskListSkeleton rows={3} />
+        </>
+      )}
+
       {/* Overdue Section */}
-      {overdueTasks.length > 0 && isToday(currentDate) && (
+      {!loading && overdueTasks.length > 0 && isToday(currentDate) && (
         <div className="day-view-overdue">
           <button
             className="day-view-overdue-header"
@@ -354,7 +368,7 @@ export default function DayView() {
       )}
 
       {/* Task Sections by Priority */}
-      {((['P1', 'P2', 'P3'] as Priority[]).map((priority) => {
+      {!loading && ((['P1', 'P2', 'P3'] as Priority[]).map((priority) => {
         const group = grouped[priority];
         if (group.length === 0) return null;
         const config = PRIORITY_CONFIG[priority];
@@ -381,7 +395,7 @@ export default function DayView() {
       }))}
 
       {/* Completed tasks */}
-      {completedTasks.length > 0 && (
+      {!loading && completedTasks.length > 0 && (
         <section className="day-view-section day-view-section--completed">
           <h3 className="day-view-section-header day-view-section-header--completed">
             Completed ({completedTasks.length})
@@ -402,7 +416,7 @@ export default function DayView() {
       )}
 
       {/* Empty State */}
-      {totalAll === 0 && overdueTasks.length === 0 && (
+      {!loading && totalAll === 0 && overdueTasks.length === 0 && (
         <div className="day-view-empty">
           <div className="day-view-empty-icon" aria-hidden="true">🌿</div>
           <p className="day-view-empty-title">All clear for today!</p>

@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { SyncProvider } from './contexts/SyncContext';
 import AppShell from './components/layout/AppShell';
 import LoginPage from './components/auth/LoginPage';
 import SignupPage from './components/auth/SignupPage';
 import ResetPasswordPage from './components/auth/ResetPasswordPage';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
-import DayView from './components/views/DayView';
-import WeekView from './components/views/WeekView';
-import MonthView from './components/views/MonthView';
-import SettingsView from './components/views/SettingsView';
 import './styles/global.css';
+
+// Lazy-load the heavy route views to reduce initial bundle
+const DayView = lazy(() => import('./components/views/DayView'));
+const WeekView = lazy(() => import('./components/views/WeekView'));
+const MonthView = lazy(() => import('./components/views/MonthView'));
+const SettingsView = lazy(() => import('./components/views/SettingsView'));
 
 function LoadingScreen() {
   return (
@@ -57,23 +60,25 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-      <Route path="/signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
-      <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+        <Route path="/signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
+        <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
 
-      {/* Protected routes inside AppShell */}
-      <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
-        <Route path="/" element={<DayView />} />
-        <Route path="/week" element={<WeekView />} />
-        <Route path="/month" element={<MonthView />} />
-        <Route path="/settings" element={<SettingsView />} />
-      </Route>
+        {/* Protected routes inside AppShell */}
+        <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+          <Route path="/" element={<DayView />} />
+          <Route path="/week" element={<WeekView />} />
+          <Route path="/month" element={<MonthView />} />
+          <Route path="/settings" element={<SettingsView />} />
+        </Route>
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
 }
 
@@ -82,7 +87,9 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
-          <AppRoutes />
+          <SyncProvider>
+            <AppRoutes />
+          </SyncProvider>
         </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
