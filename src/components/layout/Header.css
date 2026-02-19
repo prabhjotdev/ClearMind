@@ -11,15 +11,26 @@
   z-index: 30;
 }
 
+.app-header-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.app-header-logo {
+  flex-shrink: 0;
+  border-radius: 7px;
+}
+
 .app-header-title {
   font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--color-text-primary);
 }
 
-/* Hide title on desktop — sidebar shows it */
+/* Hide brand on desktop — sidebar shows it */
 @media (min-width: 768px) {
-  .app-header-title {
+  .app-header-brand {
     visibility: hidden;
   }
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import Logo from '../common/Logo';
 import './Sidebar.css';
 
 const navItems = [
@@ -12,6 +13,7 @@ export default function Sidebar() {
   return (
     <aside className="sidebar" aria-label="Main navigation">
       <div className="sidebar-brand">
+        <Logo size={30} className="sidebar-brand-logo" />
         <h2>ClearMind</h2>
       </div>
 

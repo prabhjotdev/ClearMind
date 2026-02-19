@@ -20,8 +20,16 @@
 }
 
 .sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
   padding: 0 var(--space-xl);
   margin-bottom: var(--space-2xl);
+}
+
+.sidebar-brand-logo {
+  flex-shrink: 0;
+  border-radius: 7px;
 }
 
 .sidebar-brand h2 {

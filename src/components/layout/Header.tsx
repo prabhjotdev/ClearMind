@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSyncContext } from '../../contexts/SyncContext';
 import NotificationPanel from '../notifications/NotificationPanel';
+import Logo from '../common/Logo';
 import './Header.css';
 
 export default function Header() {
@@ -16,7 +17,10 @@ export default function Header() {
 
   return (
     <header className="app-header">
-      <h1 className="app-header-title">ClearMind</h1>
+      <div className="app-header-brand">
+        <Logo size={28} className="app-header-logo" />
+        <h1 className="app-header-title">ClearMind</h1>
+      </div>
 
       <div className="app-header-actions">
         {/* Sync indicator */}
