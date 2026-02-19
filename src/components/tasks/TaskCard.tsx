@@ -35,8 +35,8 @@ export default function TaskCard({
     }
   }
 
-  const dueDateStr = task.dueDate
-    ? format(task.dueDate.toDate(), showDate ? 'EEE MMM d' : '')
+  const dueDateStr = task.dueDate && showDate
+    ? format(task.dueDate.toDate(), 'EEE MMM d')
     : '';
   const dueTimeStr = task.dueTime || '';
   const metaParts: string[] = [];
