@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import Logo from '../common/Logo';
 import './AuthPages.css';
 
 export default function ResetPasswordPage() {
@@ -33,6 +34,7 @@ export default function ResetPasswordPage() {
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-header">
+          <Logo size={56} className="auth-logo-img" />
           <h1 className="auth-logo">ClearMind</h1>
           <p className="auth-subtitle">Reset your password</p>
         </div>

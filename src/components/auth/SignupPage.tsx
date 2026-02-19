@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import Logo from '../common/Logo';
 import './AuthPages.css';
 
 export default function SignupPage() {
@@ -68,6 +69,7 @@ export default function SignupPage() {
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-header">
+          <Logo size={56} className="auth-logo-img" />
           <h1 className="auth-logo">ClearMind</h1>
           <p className="auth-subtitle">Create your account</p>
         </div>

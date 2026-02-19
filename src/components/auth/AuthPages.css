@@ -21,6 +21,11 @@
   margin-bottom: var(--space-xl);
 }
 
+.auth-logo-img {
+  margin-bottom: var(--space-md);
+  border-radius: 9px;
+}
+
 .auth-logo {
   font-size: 28px;
   font-weight: 700;
