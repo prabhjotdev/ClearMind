@@ -179,6 +179,7 @@ export default function DayView() {
       };
       const count = await generateRepeatInstances(userId, fakeTask);
       if (count > 0) {
+        setShowCreateForm(false);
         showToast(`Task created with ${count} upcoming occurrences`);
         return;
       }
