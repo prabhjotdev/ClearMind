@@ -3,6 +3,7 @@ import { format, addDays, subDays, isToday, startOfDay } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import {
   subscribeToTasksForDate,
   subscribeToOverdueTasks,
@@ -35,11 +36,13 @@ import RepeatEditDialog, { RepeatEditChoice } from '../tasks/RepeatEditDialog';
 import BottomSheet from '../common/BottomSheet';
 import FAB from '../common/FAB';
 import { TaskListSkeleton } from '../common/Skeleton';
+import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut';
 import './DayView.css';
 
 export default function DayView() {
   const { currentUser } = useAuth();
   const { showToast } = useToast();
+  const { settings } = useSettings();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,9 +54,12 @@ export default function DayView() {
   const [repeatChoiceTask, setRepeatChoiceTask] = useState<Task | null>(null);
   const [editAllFuture, setEditAllFuture] = useState(false);
   const [showOverdue, setShowOverdue] = useState(true);
+  // Keyboard navigation: index into the flattened visible task list
+  const [focusedTaskIndex, setFocusedTaskIndex] = useState<number>(-1);
   const repeatWindowFilledRef = useRef(false);
 
   const userId = currentUser?.uid;
+  const shortcutsEnabled = settings.keyboardShortcutsEnabled;
 
   // Load categories
   useEffect(() => {
@@ -93,6 +99,11 @@ export default function DayView() {
     }
     return subscribeToOverdueTasks(userId, setOverdueTasks);
   }, [userId, currentDate]);
+
+  // Reset focused task index when tasks change
+  useEffect(() => {
+    setFocusedTaskIndex(-1);
+  }, [currentDate]);
 
   const getCategoryForTask = useCallback(
     (task: Task) => categories.find((c) => c.id === task.categoryId),
@@ -271,6 +282,74 @@ export default function DayView() {
   const totalCompleted = completedTasks.length;
   const totalAll = totalActive + totalCompleted;
 
+  // Flat ordered list used for j/k navigation (visual order)
+  const allVisibleTasks: Task[] = [
+    ...overdueTasks,
+    ...(grouped['P1'] || []),
+    ...(grouped['P2'] || []),
+    ...(grouped['P3'] || []),
+    ...completedTasks,
+  ];
+
+  const anySheetOpen = showCreateForm || !!selectedTask || !!editingTask || !!repeatChoiceTask;
+
+  // ─── Keyboard shortcuts ─────────────────────────────────────
+
+  useKeyboardShortcut(
+    'n',
+    useCallback(() => setShowCreateForm(true), []),
+    shortcutsEnabled && !anySheetOpen
+  );
+
+  useKeyboardShortcut(
+    'j',
+    useCallback(() => {
+      if (allVisibleTasks.length === 0) return;
+      setFocusedTaskIndex((prev) =>
+        prev < allVisibleTasks.length - 1 ? prev + 1 : prev
+      );
+    }, [allVisibleTasks.length]),
+    shortcutsEnabled && !anySheetOpen
+  );
+
+  useKeyboardShortcut(
+    'k',
+    useCallback(() => {
+      if (allVisibleTasks.length === 0) return;
+      setFocusedTaskIndex((prev) => (prev > 0 ? prev - 1 : 0));
+    }, [allVisibleTasks.length]),
+    shortcutsEnabled && !anySheetOpen
+  );
+
+  useKeyboardShortcut(
+    'Enter',
+    useCallback(() => {
+      if (focusedTaskIndex < 0 || focusedTaskIndex >= allVisibleTasks.length) return;
+      setSelectedTask(allVisibleTasks[focusedTaskIndex]);
+    }, [focusedTaskIndex, allVisibleTasks]),
+    shortcutsEnabled && !anySheetOpen
+  );
+
+  useKeyboardShortcut(
+    'x',
+    useCallback(() => {
+      if (focusedTaskIndex < 0 || focusedTaskIndex >= allVisibleTasks.length) return;
+      handleComplete(allVisibleTasks[focusedTaskIndex].id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [focusedTaskIndex, allVisibleTasks]),
+    shortcutsEnabled && !anySheetOpen
+  );
+
+  useKeyboardShortcut(
+    'Delete',
+    useCallback(() => {
+      if (focusedTaskIndex < 0 || focusedTaskIndex >= allVisibleTasks.length) return;
+      handleDelete(allVisibleTasks[focusedTaskIndex].id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [focusedTaskIndex, allVisibleTasks]),
+    shortcutsEnabled && !anySheetOpen
+  );
+
   return (
     <div className="day-view">
       {/* Date Navigation */}
@@ -321,6 +400,13 @@ export default function DayView() {
         )}
       </div>
 
+      {/* Keyboard navigation hint */}
+      {shortcutsEnabled && allVisibleTasks.length > 0 && focusedTaskIndex === -1 && (
+        <p className="day-view-kbd-hint" aria-live="polite">
+          Press <kbd>j</kbd> / <kbd>k</kbd> to navigate tasks, <kbd>?</kbd> for all shortcuts
+        </p>
+      )}
+
       {/* Skeleton loading */}
       {loading && (
         <>
@@ -342,7 +428,7 @@ export default function DayView() {
           {showOverdue && (
             <>
               <div className="day-view-task-list">
-                {overdueTasks.map((task) => (
+                {overdueTasks.map((task, idx) => (
                   <TaskCard
                     key={task.id}
                     task={task}
@@ -351,6 +437,7 @@ export default function DayView() {
                     onDelete={handleDelete}
                     onClick={setSelectedTask}
                     showDate
+                    isFocused={allVisibleTasks.indexOf(task) === focusedTaskIndex}
                   />
                 ))}
               </div>
@@ -375,7 +462,10 @@ export default function DayView() {
 
         return (
           <section key={priority} className="day-view-section">
-            <h3 className="day-view-section-header" style={{ color: config.color }}>
+            <h3
+              className="day-view-section-header"
+              style={{ color: `var(--color-${priority.toLowerCase()})` }}
+            >
               {config.label} ({group.length})
             </h3>
             <div className="day-view-task-list">
@@ -387,6 +477,7 @@ export default function DayView() {
                   onComplete={handleComplete}
                   onDelete={handleDelete}
                   onClick={setSelectedTask}
+                  isFocused={allVisibleTasks.indexOf(task) === focusedTaskIndex}
                 />
               ))}
             </div>
@@ -409,6 +500,7 @@ export default function DayView() {
                 onComplete={handleComplete}
                 onDelete={handleDelete}
                 onClick={setSelectedTask}
+                isFocused={allVisibleTasks.indexOf(task) === focusedTaskIndex}
               />
             ))}
           </div>

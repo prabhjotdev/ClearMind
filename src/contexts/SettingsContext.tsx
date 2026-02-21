@@ -51,7 +51,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     } else {
       root.removeAttribute('data-high-contrast');
     }
-  }, [settings.fontSize, settings.reducedMotion, settings.highContrast]);
+
+    // Screen reader mode: data attribute for enhanced ARIA and simplified layouts
+    if (settings.screenReaderMode) {
+      root.setAttribute('data-screen-reader', 'true');
+    } else {
+      root.removeAttribute('data-screen-reader');
+    }
+  }, [settings.fontSize, settings.reducedMotion, settings.highContrast, settings.screenReaderMode]);
 
   async function updateSetting(key: keyof UserSettings, value: unknown) {
     const userId = currentUser?.uid;

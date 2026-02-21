@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { SyncProvider } from './contexts/SyncContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { KeyboardShortcutsProvider } from './contexts/KeyboardShortcutsContext';
 import AppShell from './components/layout/AppShell';
 import LoginPage from './components/auth/LoginPage';
 import SignupPage from './components/auth/SignupPage';
@@ -90,7 +91,9 @@ export default function App() {
         <ToastProvider>
           <SyncProvider>
             <SettingsProvider>
-              <AppRoutes />
+              <KeyboardShortcutsProvider>
+                <AppRoutes />
+              </KeyboardShortcutsProvider>
             </SettingsProvider>
           </SyncProvider>
         </ToastProvider>

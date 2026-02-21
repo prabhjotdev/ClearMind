@@ -105,6 +105,30 @@ html[data-high-contrast] {
   --color-p1-bg: #FEE2E2;
   --color-p2-bg: #FEF3C7;
   --color-p3-bg: #DBEAFE;
-  --shadow-card: 0 0 0 1px #000000;
-  --shadow-card-hover: 0 0 0 2px #000000;
+  --shadow-card: 0 0 0 2px #000000;
+  --shadow-card-hover: 0 0 0 3px #000000;
+  --color-success: #047857;
+  --color-error: #B91C1C;
+  --color-overdue-bg: #FEE2E2;
+}
+
+/* High contrast: thicker focus ring */
+html[data-high-contrast] :focus-visible {
+  outline-width: 3px;
+  outline-color: #0000CC;
+}
+
+/* High contrast: underline all links */
+html[data-high-contrast] a {
+  text-decoration: underline;
+}
+
+/* High contrast: increase button borders */
+html[data-high-contrast] button:not([class*="task-card"]):not(.fab):not(.bottom-nav-item) {
+  border: 1px solid var(--color-border);
+}
+
+/* High contrast: bottom nav active item */
+html[data-high-contrast] .bottom-nav-item--active {
+  text-decoration: underline;
 }
