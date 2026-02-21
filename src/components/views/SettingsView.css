@@ -112,6 +112,15 @@
   border-bottom: none;
 }
 
+/* Supplemental hint text below a settings label */
+.settings-toggle-hint {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
 .settings-checkbox {
   width: 20px;
   height: 20px;
