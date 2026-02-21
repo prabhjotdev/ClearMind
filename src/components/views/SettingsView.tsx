@@ -256,7 +256,10 @@ export default function SettingsView() {
               />
             </label>
             <label className="settings-toggle-row">
-              <span>Keyboard shortcuts</span>
+              <span>
+                Keyboard shortcuts
+                <span className="settings-toggle-hint">Best with a hardware keyboard</span>
+              </span>
               <input
                 type="checkbox"
                 className="settings-checkbox"
