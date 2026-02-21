@@ -10,6 +10,8 @@ interface TaskCardProps {
   onDelete: (taskId: string) => void;
   onClick: (task: Task) => void;
   showDate?: boolean;
+  /** Highlighted via keyboard navigation (j/k shortcuts) */
+  isFocused?: boolean;
 }
 
 export default function TaskCard({
@@ -19,6 +21,7 @@ export default function TaskCard({
   onDelete,
   onClick,
   showDate = false,
+  isFocused = false,
 }: TaskCardProps) {
   const priorityConfig = PRIORITY_CONFIG[task.priority];
   const isCompleted = task.status === 'completed';
@@ -50,8 +53,8 @@ export default function TaskCard({
 
   return (
     <article
-      className={`task-card ${isCompleted ? 'task-card--completed' : ''}`}
-      style={{ '--priority-color': priorityConfig.color } as React.CSSProperties}
+      className={`task-card ${isCompleted ? 'task-card--completed' : ''} ${isFocused ? 'task-card--kbd-focused' : ''}`}
+      style={{ '--priority-color': `var(--color-${task.priority.toLowerCase()})` } as React.CSSProperties}
       onClick={() => onClick(task)}
       onKeyDown={handleKeyDown}
       tabIndex={0}

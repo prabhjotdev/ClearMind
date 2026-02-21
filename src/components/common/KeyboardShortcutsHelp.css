@@ -1,0 +1,117 @@
+.ksh-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg-overlay);
+  z-index: 80;
+}
+
+.ksh-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 90;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  outline: none;
+}
+
+.ksh-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-xl) var(--space-xl) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ksh-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.ksh-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  transition: background var(--duration-fast);
+}
+
+.ksh-close:hover,
+.ksh-close:focus-visible {
+  background: var(--color-border);
+}
+
+.ksh-table {
+  width: 100%;
+  border-collapse: collapse;
+  padding: var(--space-md) var(--space-xl);
+  display: table;
+}
+
+.ksh-table th {
+  text-align: left;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ksh-table td {
+  padding: var(--space-sm) var(--space-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ksh-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ksh-kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 0 var(--color-border);
+  white-space: nowrap;
+  min-width: 28px;
+  text-align: center;
+}
+
+.ksh-context {
+  color: var(--color-text-secondary);
+}
+
+.ksh-hint {
+  padding: var(--space-md) var(--space-xl) var(--space-xl);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+}
+
+/* High contrast adjustments */
+html[data-high-contrast] .ksh-kbd {
+  border-color: var(--color-text-primary);
+  border-width: 2px;
+}
+
+html[data-high-contrast] .ksh-dialog {
+  border: 2px solid var(--color-text-primary);
+}

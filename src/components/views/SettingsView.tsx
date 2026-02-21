@@ -244,6 +244,28 @@ export default function SettingsView() {
                 }
               />
             </label>
+            <label className="settings-toggle-row">
+              <span>Screen reader mode</span>
+              <input
+                type="checkbox"
+                className="settings-checkbox"
+                checked={settings.screenReaderMode}
+                onChange={(e) =>
+                  updateSetting('screenReaderMode', e.target.checked)
+                }
+              />
+            </label>
+            <label className="settings-toggle-row">
+              <span>Keyboard shortcuts</span>
+              <input
+                type="checkbox"
+                className="settings-checkbox"
+                checked={settings.keyboardShortcutsEnabled}
+                onChange={(e) =>
+                  updateSetting('keyboardShortcutsEnabled', e.target.checked)
+                }
+              />
+            </label>
           </div>
         )}
       </section>

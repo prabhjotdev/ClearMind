@@ -104,6 +104,7 @@ export interface UserSettings {
   reducedMotion: boolean;
   highContrast: boolean;
   screenReaderMode: boolean;
+  keyboardShortcutsEnabled: boolean;
   heatmapThresholdHigh: number;
   heatmapThresholdMedium: number;
   weekStartsOn: WeekStartDay;
@@ -151,6 +152,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   reducedMotion: false,
   highContrast: false,
   screenReaderMode: false,
+  keyboardShortcutsEnabled: false,
   heatmapThresholdHigh: 5,
   heatmapThresholdMedium: 3,
   weekStartsOn: 'monday',
