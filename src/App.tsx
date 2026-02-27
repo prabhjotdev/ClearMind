@@ -17,6 +17,7 @@ const DayView = lazy(() => import('./components/views/DayView'));
 const WeekView = lazy(() => import('./components/views/WeekView'));
 const MonthView = lazy(() => import('./components/views/MonthView'));
 const SettingsView = lazy(() => import('./components/views/SettingsView'));
+const EmergencyFundView = lazy(() => import('./components/views/EmergencyFundView'));
 
 function LoadingScreen() {
   return (
@@ -75,6 +76,7 @@ function AppRoutes() {
           <Route path="/week" element={<WeekView />} />
           <Route path="/month" element={<MonthView />} />
           <Route path="/settings" element={<SettingsView />} />
+          <Route path="/emergency-fund" element={<EmergencyFundView />} />
         </Route>
 
         {/* Fallback */}

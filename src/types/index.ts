@@ -112,6 +112,23 @@ export interface UserSettings {
   lastSyncAt: Timestamp;
 }
 
+// ─── Emergency Fund ──────────────────────────────────────────
+
+export interface EmergencyFundTransaction {
+  id: string;
+  description: string;
+  amount: number; // positive = deposit, negative = withdrawal
+  date: Timestamp;
+  createdAt: Timestamp;
+  createdBy: string;
+}
+
+export type EmergencyFundTransactionFormData = {
+  description: string;
+  amount: number;
+  date: Date;
+};
+
 // ─── UI Helpers ──────────────────────────────────────────────
 
 export interface PriorityConfig {

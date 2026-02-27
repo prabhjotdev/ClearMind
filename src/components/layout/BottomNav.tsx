@@ -6,6 +6,7 @@ const navItems = [
   { to: '/', label: 'Today', icon: 'today' },
   { to: '/week', label: 'Week', icon: 'week' },
   { to: '/month', label: 'Month', icon: 'month' },
+  { to: '/emergency-fund', label: 'Fund', icon: 'fund' },
   { to: '/settings', label: 'Settings', icon: 'settings' },
 ];
 
@@ -42,6 +43,14 @@ function NavIcon({ icon }: { icon: string }) {
           <rect x="6" y="13" width="3" height="3" rx="0.5" fill="currentColor" />
           <rect x="10.5" y="13" width="3" height="3" rx="0.5" fill="currentColor" />
           <rect x="15" y="13" width="3" height="3" rx="0.5" fill="currentColor" />
+        </svg>
+      );
+    case 'fund':
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="2" y="5" width="20" height="14" rx="2" />
+          <line x1="2" y1="10" x2="22" y2="10" />
+          <circle cx="12" cy="15" r="2" />
         </svg>
       );
     case 'settings':

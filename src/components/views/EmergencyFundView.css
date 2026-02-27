@@ -1,0 +1,238 @@
+.ef-view {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ─── Balance Card ─── */
+.ef-balance-card {
+  background: var(--color-p3);
+  color: #fff;
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl) var(--space-xl);
+  text-align: center;
+  margin-bottom: var(--space-lg);
+  box-shadow: var(--shadow-fab);
+}
+
+.ef-balance-label {
+  font-size: var(--font-size-sm);
+  opacity: 0.85;
+  margin-bottom: var(--space-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ef-balance-amount {
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-xs);
+}
+
+.ef-balance-amount--negative {
+  color: #fca5a5;
+}
+
+.ef-balance-sub {
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
+}
+
+/* ─── Add button ─── */
+.ef-actions {
+  margin-bottom: var(--space-md);
+}
+
+.ef-add-btn {
+  width: 100%;
+  padding: var(--space-md);
+  background: var(--color-bg-card);
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  transition: border-color var(--duration-fast) var(--easing-default),
+              color var(--duration-fast) var(--easing-default);
+}
+
+.ef-add-btn:hover {
+  border-color: var(--color-p3);
+  color: var(--color-p3);
+}
+
+/* ─── Form ─── */
+.ef-form {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-md);
+  box-shadow: var(--shadow-card);
+}
+
+.ef-form-row {
+  margin-bottom: var(--space-md);
+}
+
+.ef-form-row--inline {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.ef-form-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.ef-form-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-xs);
+}
+
+.ef-form-input {
+  padding: var(--space-sm) var(--space-md);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: border-color var(--duration-fast) var(--easing-default);
+}
+
+.ef-form-input:focus {
+  border-color: var(--color-border-focus);
+  outline: none;
+}
+
+/* ─── Type toggle ─── */
+.ef-form-type {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.ef-type-btn {
+  flex: 1;
+  padding: var(--space-sm);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: all var(--duration-fast) var(--easing-default);
+}
+
+.ef-type-btn--active.ef-type-btn--deposit {
+  background: #D1FAE5;
+  border-color: var(--color-success);
+  color: #065F46;
+}
+
+.ef-type-btn--active.ef-type-btn--withdrawal {
+  background: #FEE2E2;
+  border-color: var(--color-error);
+  color: #991B1B;
+}
+
+/* ─── Save button ─── */
+.ef-save-btn {
+  width: 100%;
+  padding: var(--space-md);
+  background: var(--color-p3);
+  color: #fff;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  transition: opacity var(--duration-fast) var(--easing-default);
+}
+
+.ef-save-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.ef-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ─── Transaction list ─── */
+.ef-tx-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.ef-empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  padding: var(--space-2xl) 0;
+}
+
+.ef-tx-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md) var(--space-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.ef-tx-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ef-tx-desc {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ef-tx-date {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.ef-tx-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-shrink: 0;
+}
+
+.ef-tx-amount {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+}
+
+.ef-tx-amount--positive {
+  color: var(--color-success);
+}
+
+.ef-tx-amount--negative {
+  color: var(--color-error);
+}
+
+.ef-tx-delete {
+  color: var(--color-text-muted);
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  transition: color var(--duration-fast) var(--easing-default);
+  display: flex;
+  align-items: center;
+}
+
+.ef-tx-delete:hover {
+  color: var(--color-error);
+}
