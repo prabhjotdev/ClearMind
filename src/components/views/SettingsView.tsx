@@ -12,6 +12,7 @@ import {
 } from '../../services/importExportService';
 import { useSettings } from '../../contexts/SettingsContext';
 import ImportModal from '../settings/ImportModal';
+import CategoryManager from '../settings/CategoryManager';
 import './SettingsView.css';
 
 export default function SettingsView() {
@@ -134,6 +135,22 @@ export default function SettingsView() {
             Sign Out
           </button>
         </div>
+      </section>
+
+      {/* Categories */}
+      <section className="settings-section">
+        <button
+          className="settings-section-title settings-section-toggle"
+          onClick={() => toggleSection('categories')}
+          aria-expanded={expandedSection === 'categories'}
+        >
+          Categories {expandedSection === 'categories' ? '▴' : '▾'}
+        </button>
+        {expandedSection === 'categories' && (
+          <div className="settings-card">
+            <CategoryManager />
+          </div>
+        )}
       </section>
 
       {/* Notifications */}

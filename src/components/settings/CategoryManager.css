@@ -1,0 +1,333 @@
+/* ─── Category Manager ──────────────────────────────────────── */
+
+.cat-manager {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* ── List ── */
+
+.cat-manager-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cat-manager-item {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cat-manager-item:last-child {
+  border-bottom: none;
+}
+
+/* ── Normal row ── */
+
+.cat-manager-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  min-height: 48px;
+}
+
+.cat-manager-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cat-manager-row-icon {
+  font-size: var(--font-size-base);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cat-manager-row-name {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.cat-manager-default-badge {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 1px 8px;
+  flex-shrink: 0;
+}
+
+.cat-manager-row-actions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+
+.cat-manager-action-btn {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s, color 0.15s;
+}
+
+.cat-manager-action-btn:hover {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.cat-manager-action-btn--danger {
+  color: var(--color-error);
+  border-color: transparent;
+}
+
+.cat-manager-action-btn--danger:hover {
+  background: var(--color-overdue-bg);
+}
+
+/* ── Edit / Add form shared ── */
+
+.cat-manager-edit-form,
+.cat-manager-add-form {
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  background: var(--color-bg-primary);
+}
+
+.cat-manager-add-title {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.cat-manager-form-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* ── Icon button ── */
+
+.cat-manager-icon-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.cat-manager-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-border);
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: var(--color-bg-card);
+  transition: border-color 0.15s;
+}
+
+.cat-manager-icon-btn:hover {
+  background: var(--color-bg-primary);
+}
+
+.cat-manager-icon-picker {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-sm);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  min-width: 200px;
+}
+
+.cat-manager-icon-option {
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.cat-manager-icon-option:hover {
+  background: var(--color-bg-primary);
+}
+
+.cat-manager-icon-option--active {
+  background: var(--color-bg-primary);
+  outline: 2px solid var(--color-p3);
+}
+
+/* ── Name input ── */
+
+.cat-manager-name-input {
+  flex: 1;
+  height: 40px;
+  padding: 0 var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-card);
+}
+
+.cat-manager-name-input:focus {
+  outline: 2px solid var(--color-p3);
+  outline-offset: 2px;
+}
+
+/* ── Color swatches ── */
+
+.cat-manager-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.cat-manager-color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s;
+  flex-shrink: 0;
+}
+
+.cat-manager-color-swatch:hover {
+  transform: scale(1.15);
+}
+
+.cat-manager-color-swatch--active {
+  border-color: var(--color-text-primary);
+  transform: scale(1.15);
+}
+
+.cat-manager-color-custom {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* ── Preview chip ── */
+
+.cat-manager-preview {
+  display: flex;
+  align-items: center;
+}
+
+.cat-manager-preview-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+/* ── Form actions ── */
+
+.cat-manager-form-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+}
+
+.cat-manager-btn {
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.cat-manager-btn:hover {
+  background: var(--color-bg-primary);
+}
+
+.cat-manager-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cat-manager-btn--primary {
+  background: var(--color-p3);
+  color: white;
+  border-color: var(--color-p3);
+}
+
+.cat-manager-btn--primary:hover {
+  opacity: 0.9;
+}
+
+.cat-manager-btn--danger {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.cat-manager-btn--danger:hover {
+  background: var(--color-overdue-bg);
+}
+
+/* ── Delete confirm ── */
+
+.cat-manager-delete-confirm {
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  background: var(--color-bg-primary);
+}
+
+.cat-manager-delete-warning {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* ── Add button ── */
+
+.cat-manager-add-btn {
+  margin: var(--space-sm) var(--space-lg) var(--space-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-p3);
+  text-align: left;
+  padding: var(--space-xs) 0;
+}
+
+.cat-manager-add-btn:hover {
+  opacity: 0.8;
+}
