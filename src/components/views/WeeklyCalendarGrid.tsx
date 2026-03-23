@@ -182,20 +182,32 @@ export default function WeeklyCalendarGrid({
                 key={key}
                 className={`calendar-grid-allday-cell ${isToday(day) ? 'calendar-grid-allday-cell--today' : ''}`}
               >
-                {dayAllDay.map((task) => {
-                  const priorityConfig = PRIORITY_CONFIG[task.priority];
+                {(() => {
+                  const MAX_VISIBLE = 3;
+                  const visibleTasks = dayAllDay.slice(0, MAX_VISIBLE);
+                  const hiddenCount = dayAllDay.length - MAX_VISIBLE;
                   return (
-                    <button
-                      key={task.id}
-                      className="calendar-grid-allday-chip"
-                      style={{ background: priorityConfig.color + '20', color: priorityConfig.color }}
-                      onClick={() => onTaskClick(task)}
-                      title={task.name}
-                    >
-                      {task.name}
-                    </button>
+                    <>
+                      {visibleTasks.map((task) => {
+                        const priorityConfig = PRIORITY_CONFIG[task.priority];
+                        return (
+                          <button
+                            key={task.id}
+                            className="calendar-grid-allday-chip"
+                            style={{ background: priorityConfig.color + '20', color: priorityConfig.color }}
+                            onClick={() => onTaskClick(task)}
+                            title={task.name}
+                          >
+                            {task.name}
+                          </button>
+                        );
+                      })}
+                      {hiddenCount > 0 && (
+                        <span className="calendar-grid-allday-overflow">+{hiddenCount} more</span>
+                      )}
+                    </>
                   );
-                })}
+                })()}
               </div>
             );
           })}

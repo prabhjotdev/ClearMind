@@ -112,6 +112,8 @@
   border-left: 1px solid var(--color-border);
   align-items: flex-start;
   align-content: flex-start;
+  max-height: 72px;
+  overflow: hidden;
 }
 
 .calendar-grid-allday-cell--today {
@@ -133,6 +135,15 @@
 
 .calendar-grid-allday-chip:hover {
   opacity: 0.8;
+}
+
+.calendar-grid-allday-overflow {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  padding: 2px 4px;
+  cursor: default;
+  white-space: nowrap;
 }
 
 /* ─── Time Grid ─── */
