@@ -439,6 +439,8 @@ export default function DayView() {
                     onClick={setSelectedTask}
                     showDate
                     isFocused={allVisibleTasks.indexOf(task) === focusedTaskIndex}
+                    swipeLeftAction={settings.swipeLeftAction}
+                    reducedMotion={settings.reducedMotion}
                   />
                 ))}
               </div>
@@ -479,6 +481,8 @@ export default function DayView() {
                   onDelete={handleDelete}
                   onClick={setSelectedTask}
                   isFocused={allVisibleTasks.indexOf(task) === focusedTaskIndex}
+                  swipeLeftAction={settings.swipeLeftAction}
+                  reducedMotion={settings.reducedMotion}
                 />
               ))}
             </div>
@@ -502,6 +506,8 @@ export default function DayView() {
                 onDelete={handleDelete}
                 onClick={setSelectedTask}
                 isFocused={allVisibleTasks.indexOf(task) === focusedTaskIndex}
+                swipeLeftAction={settings.swipeLeftAction}
+                reducedMotion={settings.reducedMotion}
               />
             ))}
           </div>

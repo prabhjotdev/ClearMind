@@ -93,6 +93,7 @@ export interface UserProfile {
 
 export type WeekStartDay = 'monday' | 'sunday';
 export type ReminderSound = 'default' | 'gentle' | 'none';
+export type SwipeLeftAction = 'complete' | 'delete';
 
 export interface UserSettings {
   pushNotificationsEnabled: boolean;
@@ -108,6 +109,7 @@ export interface UserSettings {
   heatmapThresholdHigh: number;
   heatmapThresholdMedium: number;
   weekStartsOn: WeekStartDay;
+  swipeLeftAction: SwipeLeftAction;
   fcmToken: string | null;
   lastSyncAt: Timestamp;
 }
@@ -156,6 +158,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   heatmapThresholdHigh: 5,
   heatmapThresholdMedium: 3,
   weekStartsOn: 'monday',
+  swipeLeftAction: 'complete',
   fcmToken: null,
   lastSyncAt: Timestamp.now(),
 };
