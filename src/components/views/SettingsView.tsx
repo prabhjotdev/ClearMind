@@ -290,6 +290,35 @@ export default function SettingsView() {
         )}
       </section>
 
+      {/* Gestures */}
+      <section className="settings-section">
+        <button
+          className="settings-section-title settings-section-toggle"
+          onClick={() => toggleSection('gestures')}
+          aria-expanded={expandedSection === 'gestures'}
+        >
+          Gestures {expandedSection === 'gestures' ? '▴' : '▾'}
+        </button>
+        {expandedSection === 'gestures' && (
+          <div className="settings-card">
+            <label className="settings-toggle-row">
+              <span>
+                Swipe left action
+                <span className="settings-toggle-hint">Right swipe does the opposite</span>
+              </span>
+              <select
+                className="settings-input-small"
+                value={settings.swipeLeftAction}
+                onChange={(e) => updateSetting('swipeLeftAction', e.target.value)}
+              >
+                <option value="complete">Complete</option>
+                <option value="delete">Delete</option>
+              </select>
+            </label>
+          </div>
+        )}
+      </section>
+
       {/* Display */}
       <section className="settings-section">
         <button

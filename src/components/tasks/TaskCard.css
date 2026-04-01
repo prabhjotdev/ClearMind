@@ -1,3 +1,66 @@
+/* ─── Swipe gesture ────────────────────────────────────────── */
+
+.task-swipe-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  /* Prevent text selection while swiping */
+  user-select: none;
+  touch-action: pan-y;
+}
+
+.task-swipe-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-xl);
+  border-radius: var(--radius-md);
+}
+
+.task-swipe-bg--complete {
+  background: #3B82F6;
+  justify-content: flex-end;
+}
+
+.task-swipe-bg--delete {
+  background: #EF4444;
+  justify-content: flex-start;
+}
+
+.task-swipe-icon {
+  color: white;
+}
+
+/* Exit animations */
+
+@keyframes swipe-exit-left {
+  to {
+    transform: translateX(-110%);
+    opacity: 0;
+  }
+}
+
+@keyframes swipe-exit-right {
+  to {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+}
+
+.task-card--exiting-left {
+  animation: swipe-exit-left var(--duration-normal) var(--easing-default) forwards;
+}
+
+.task-card--exiting-right {
+  animation: swipe-exit-right var(--duration-normal) var(--easing-default) forwards;
+}
+
+html[data-reduced-motion] .task-card--exiting-left,
+html[data-reduced-motion] .task-card--exiting-right {
+  animation: none;
+}
+
 /* ─── Enter animation ──────────────────────────────────────── */
 
 @keyframes task-card-enter {
