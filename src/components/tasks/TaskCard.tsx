@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Task, Category, PRIORITY_CONFIG } from '../../types';
 import { format } from 'date-fns';
 import './TaskCard.css';
@@ -20,6 +20,22 @@ interface TaskCardProps {
 
 const SWIPE_THRESHOLD = 80; // px
 
+function CheckIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 12L9 17L20 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default function TaskCard({
   task,
   category,
@@ -34,78 +50,206 @@ export default function TaskCard({
   const priorityConfig = PRIORITY_CONFIG[task.priority];
   const isCompleted = task.status === 'completed';
 
-  // ─── Swipe state ────────────────────────────────────────────
-  const pointerRef = useRef<{ startX: number; startY: number; pointerId: number; locked: boolean } | null>(null);
-  const [swipeX, setSwipeX] = useState(0);
-  const [exiting, setExiting] = useState<'left' | 'right' | null>(null);
-  const isSwiping = swipeX !== 0;
+  // ─── Refs ────────────────────────────────────────────────────
+  const wrapperRef  = useRef<HTMLDivElement>(null);
+  const cardRef     = useRef<HTMLElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const leftIconRef  = useRef<HTMLDivElement>(null);
+  const rightIconRef = useRef<HTMLDivElement>(null);
 
-  function actionForDelta(deltaX: number): 'complete' | 'delete' {
-    const isLeft = deltaX < 0;
-    if (swipeLeftAction === 'complete') return isLeft ? 'complete' : 'delete';
-    return isLeft ? 'delete' : 'complete';
-  }
+  // Active touch gesture data — never triggers re-renders
+  const gestureRef = useRef<{
+    startX: number; startY: number;
+    locked: boolean; lastDx: number;
+  } | null>(null);
+
+  // Suppresses click after a real swipe commit
+  const wasSwipedRef = useRef(false);
+
+  // Only state needed: which direction the exit animation plays
+  const [exiting, setExiting] = useState<'left' | 'right' | null>(null);
+
+  // ─── Snap-or-commit (stable ref to avoid stale closures) ────
+  const snapOrCommitRef = useRef<(dx: number) => void>(() => {});
+
+  useEffect(() => {
+    snapOrCommitRef.current = (dx: number) => {
+      if (Math.abs(dx) >= SWIPE_THRESHOLD) {
+        wasSwipedRef.current = true;
+        const action = dx < 0
+          ? swipeLeftAction
+          : (swipeLeftAction === 'complete' ? 'delete' : 'complete');
+        const exitDir = dx < 0 ? 'left' : 'right';
+
+        if (reducedMotion) {
+          if (cardRef.current)     cardRef.current.style.transform = '';
+          if (backdropRef.current) { backdropRef.current.style.opacity = '0'; backdropRef.current.style.backgroundColor = ''; }
+          if (leftIconRef.current)  leftIconRef.current.style.opacity = '0';
+          if (rightIconRef.current) rightIconRef.current.style.opacity = '0';
+          action === 'complete' ? onComplete(task.id) : onDelete(task.id);
+        } else {
+          setExiting(exitDir);
+          setTimeout(() => {
+            setExiting(null);
+            if (cardRef.current)     cardRef.current.style.transform = '';
+            if (backdropRef.current) { backdropRef.current.style.opacity = '0'; backdropRef.current.style.backgroundColor = ''; }
+            if (leftIconRef.current)  leftIconRef.current.style.opacity = '0';
+            if (rightIconRef.current) rightIconRef.current.style.opacity = '0';
+            action === 'complete' ? onComplete(task.id) : onDelete(task.id);
+          }, 260);
+        }
+      } else {
+        // Snap back with spring feel
+        if (cardRef.current) {
+          cardRef.current.style.transition = 'transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)';
+          cardRef.current.style.transform = 'translateX(0)';
+          const el = cardRef.current;
+          setTimeout(() => { el.style.transition = ''; }, 310);
+        }
+        if (backdropRef.current) {
+          backdropRef.current.style.opacity = '0';
+          backdropRef.current.style.backgroundColor = '';
+        }
+        if (leftIconRef.current)  leftIconRef.current.style.opacity = '0';
+        if (rightIconRef.current) rightIconRef.current.style.opacity = '0';
+      }
+    };
+  }, [task.id, swipeLeftAction, reducedMotion, onComplete, onDelete]);
+
+  // ─── Touch event listeners (non-passive touchmove) ───────────
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+
+    function onTouchStart(e: TouchEvent) {
+      if (exiting) return;
+      const t = e.touches[0];
+      gestureRef.current = { startX: t.clientX, startY: t.clientY, locked: false, lastDx: 0 };
+      wasSwipedRef.current = false;
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      const g = gestureRef.current;
+      if (!g) return;
+
+      const t = e.touches[0];
+      const dx = t.clientX - g.startX;
+      const dy = t.clientY - g.startY;
+
+      if (!g.locked) {
+        if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return; // dead zone
+        if (Math.abs(dy) > Math.abs(dx) * 0.7) {
+          // Clearly vertical — cancel and let browser scroll
+          gestureRef.current = null;
+          return;
+        }
+        g.locked = true;
+      }
+
+      // Non-passive listener: this actually prevents the page from scrolling
+      e.preventDefault();
+
+      g.lastDx = dx;
+
+      const action = dx < 0
+        ? swipeLeftAction
+        : (swipeLeftAction === 'complete' ? 'delete' : 'complete');
+      const progress = Math.min(Math.abs(dx) / SWIPE_THRESHOLD, 1);
+      const color = action === 'complete' ? '#3B82F6' : '#EF4444';
+
+      // Direct DOM manipulation — no React re-render, guaranteed 60fps
+      if (cardRef.current) {
+        cardRef.current.style.transition = 'none';
+        cardRef.current.style.transform = `translateX(${dx}px)`;
+      }
+      if (backdropRef.current) {
+        backdropRef.current.style.opacity = String(progress);
+        backdropRef.current.style.backgroundColor = color;
+      }
+      // Icons fade in faster (2× speed) so they're visible early
+      const iconProgress = Math.min(progress * 2, 1);
+      if (leftIconRef.current)  leftIconRef.current.style.opacity  = dx < 0 ? String(iconProgress) : '0';
+      if (rightIconRef.current) rightIconRef.current.style.opacity = dx > 0 ? String(iconProgress) : '0';
+    }
+
+    function onTouchEnd() {
+      const g = gestureRef.current;
+      gestureRef.current = null;
+      if (!g || !g.locked) return;
+      snapOrCommitRef.current(g.lastDx);
+    }
+
+    wrapper.addEventListener('touchstart',  onTouchStart, { passive: true });
+    wrapper.addEventListener('touchmove',   onTouchMove,  { passive: false }); // ← the key fix
+    wrapper.addEventListener('touchend',    onTouchEnd,   { passive: true });
+    wrapper.addEventListener('touchcancel', onTouchEnd,   { passive: true });
+
+    return () => {
+      wrapper.removeEventListener('touchstart',  onTouchStart);
+      wrapper.removeEventListener('touchmove',   onTouchMove);
+      wrapper.removeEventListener('touchend',    onTouchEnd);
+      wrapper.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, [swipeLeftAction, exiting]);
+
+  // ─── Desktop mouse swipe (pointer events, JSX props) ─────────
+  const mouseRef = useRef<{ startX: number; locked: boolean; lastDx: number } | null>(null);
 
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    if (e.button !== 0 && e.pointerType === 'mouse') return; // only left-mouse or touch
-    pointerRef.current = { startX: e.clientX, startY: e.clientY, pointerId: e.pointerId, locked: false };
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    mouseRef.current = { startX: e.clientX, locked: false, lastDx: 0 };
     (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+    wasSwipedRef.current = false;
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (!pointerRef.current || exiting) return;
-    const deltaX = e.clientX - pointerRef.current.startX;
-    const deltaY = e.clientY - pointerRef.current.startY;
+    if (e.pointerType !== 'mouse') return;
+    const m = mouseRef.current;
+    if (!m) return;
 
-    // Lock to horizontal only after the gesture is clearly horizontal
-    if (!pointerRef.current.locked) {
-      if (Math.abs(deltaX) < 5 && Math.abs(deltaY) < 5) return; // dead zone
-      if (Math.abs(deltaY) > Math.abs(deltaX) * 0.6) {
-        // Vertical — cancel the swipe so scroll works
-        pointerRef.current = null;
-        return;
-      }
-      pointerRef.current.locked = true;
+    const dx = e.clientX - m.startX;
+    if (!m.locked) {
+      if (Math.abs(dx) < 5) return;
+      m.locked = true;
     }
+    m.lastDx = dx;
 
-    e.preventDefault();
-    setSwipeX(deltaX);
+    const action = dx < 0
+      ? swipeLeftAction
+      : (swipeLeftAction === 'complete' ? 'delete' : 'complete');
+    const progress = Math.min(Math.abs(dx) / SWIPE_THRESHOLD, 1);
+    const color = action === 'complete' ? '#3B82F6' : '#EF4444';
+
+    if (cardRef.current) {
+      cardRef.current.style.transition = 'none';
+      cardRef.current.style.transform = `translateX(${dx}px)`;
+    }
+    if (backdropRef.current) {
+      backdropRef.current.style.opacity = String(progress);
+      backdropRef.current.style.backgroundColor = color;
+    }
+    const iconProgress = Math.min(progress * 2, 1);
+    if (leftIconRef.current)  leftIconRef.current.style.opacity  = dx < 0 ? String(iconProgress) : '0';
+    if (rightIconRef.current) rightIconRef.current.style.opacity = dx > 0 ? String(iconProgress) : '0';
   }
 
   function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
-    if (!pointerRef.current) return;
-    const deltaX = e.clientX - pointerRef.current.startX;
-    pointerRef.current = null;
-
-    if (Math.abs(deltaX) >= SWIPE_THRESHOLD) {
-      const action = actionForDelta(deltaX);
-      const exitDir = deltaX < 0 ? 'left' : 'right';
-      if (reducedMotion) {
-        setSwipeX(0);
-        action === 'complete' ? onComplete(task.id) : onDelete(task.id);
-      } else {
-        setExiting(exitDir);
-        setTimeout(() => {
-          setSwipeX(0);
-          setExiting(null);
-          action === 'complete' ? onComplete(task.id) : onDelete(task.id);
-        }, 250);
-      }
-    } else {
-      setSwipeX(0);
-    }
+    if (e.pointerType !== 'mouse') return;
+    const m = mouseRef.current;
+    mouseRef.current = null;
+    if (!m || !m.locked) return;
+    snapOrCommitRef.current(m.lastDx);
   }
 
   function handlePointerCancel() {
-    pointerRef.current = null;
-    setSwipeX(0);
+    mouseRef.current = null;
+    if (cardRef.current) { cardRef.current.style.transition = ''; cardRef.current.style.transform = ''; }
+    if (backdropRef.current) { backdropRef.current.style.opacity = '0'; backdropRef.current.style.backgroundColor = ''; }
+    if (leftIconRef.current)  leftIconRef.current.style.opacity = '0';
+    if (rightIconRef.current) rightIconRef.current.style.opacity = '0';
   }
 
-  // ─── Derived swipe display ──────────────────────────────────
-  const swipeAction = swipeX !== 0 ? actionForDelta(swipeX) : null;
-  const swipeProgress = Math.min(Math.abs(swipeX) / SWIPE_THRESHOLD, 1);
-
-  // ─── Card click (only fire if not swiping) ──────────────────
+  // ─── Keyboard & click handlers ───────────────────────────────
   function handleCheckboxClick(e: React.MouseEvent) {
     e.stopPropagation();
     onComplete(task.id);
@@ -118,6 +262,7 @@ export default function TaskCard({
     }
   }
 
+  // ─── Date/time formatting ────────────────────────────────────
   const dueDateStr = task.dueDate && showDate
     ? format(task.dueDate.toDate(), 'EEE MMM d')
     : '';
@@ -137,43 +282,38 @@ export default function TaskCard({
       ? 'task-card--exiting-right'
       : '';
 
+  // Which icon appears on each side depends on swipeLeftAction setting
+  const leftAction  = swipeLeftAction;                                          // left swipe action
+  const rightAction = swipeLeftAction === 'complete' ? 'delete' : 'complete';  // right swipe action
+
   return (
     <div
+      ref={wrapperRef}
       className="task-swipe-wrapper"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
     >
-      {/* Colored background revealed as the card slides */}
-      {swipeAction && (
-        <div
-          className={`task-swipe-bg task-swipe-bg--${swipeAction}`}
-          style={{ opacity: swipeProgress }}
-          aria-hidden="true"
-        >
-          {swipeAction === 'complete' ? (
-            <svg className="task-swipe-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M4 12L9 17L20 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          ) : (
-            <svg className="task-swipe-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          )}
+      {/* Backdrop — always in DOM, opacity/color driven by JS during swipe */}
+      <div
+        ref={backdropRef}
+        className="task-swipe-bg"
+        aria-hidden="true"
+      >
+        <div ref={leftIconRef} className="task-swipe-icon-slot task-swipe-icon-slot--left">
+          {leftAction === 'complete' ? <CheckIcon /> : <TrashIcon />}
         </div>
-      )}
+        <div ref={rightIconRef} className="task-swipe-icon-slot task-swipe-icon-slot--right">
+          {rightAction === 'complete' ? <CheckIcon /> : <TrashIcon />}
+        </div>
+      </div>
 
       <article
+        ref={cardRef}
         className={`task-card ${isCompleted ? 'task-card--completed' : ''} ${isFocused ? 'task-card--kbd-focused' : ''} ${exitClass}`}
-        style={{
-          '--priority-color': `var(--color-${task.priority.toLowerCase()})`,
-          transform: swipeX !== 0 ? `translateX(${swipeX}px)` : undefined,
-          transition: swipeX !== 0 ? 'none' : undefined,
-        } as React.CSSProperties}
-        onClick={() => {
-          if (!isSwiping) onClick(task);
-        }}
+        style={{ '--priority-color': `var(--color-${task.priority.toLowerCase()})` } as React.CSSProperties}
+        onClick={() => { if (!wasSwipedRef.current) onClick(task); }}
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="article"
