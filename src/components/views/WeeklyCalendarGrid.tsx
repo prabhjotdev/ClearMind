@@ -11,8 +11,8 @@ interface WeeklyCalendarGridProps {
   onReschedule: (taskId: string, newDate: Date, newTime: string | null) => void;
 }
 
-const HOUR_START = 6;
-const HOUR_END = 23;
+const HOUR_START = 0;
+const HOUR_END = 24;
 const HOUR_HEIGHT = 48; // px per hour slot
 const TOTAL_HOURS = HOUR_END - HOUR_START;
 
