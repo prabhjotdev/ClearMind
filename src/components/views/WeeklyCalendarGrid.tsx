@@ -188,20 +188,22 @@ export default function WeeklyCalendarGrid({
                   const hiddenCount = dayAllDay.length - MAX_VISIBLE;
                   return (
                     <>
-                      {visibleTasks.map((task) => {
-                        const priorityConfig = PRIORITY_CONFIG[task.priority];
-                        return (
-                          <button
-                            key={task.id}
-                            className="calendar-grid-allday-chip"
-                            style={{ background: priorityConfig.color + '20', color: priorityConfig.color }}
-                            onClick={() => onTaskClick(task)}
-                            title={task.name}
-                          >
-                            {task.name}
-                          </button>
-                        );
-                      })}
+                      <div className="calendar-grid-allday-chips">
+                        {visibleTasks.map((task) => {
+                          const priorityConfig = PRIORITY_CONFIG[task.priority];
+                          return (
+                            <button
+                              key={task.id}
+                              className="calendar-grid-allday-chip"
+                              style={{ background: priorityConfig.color + '20', color: priorityConfig.color }}
+                              onClick={() => onTaskClick(task)}
+                              title={task.name}
+                            >
+                              {task.name}
+                            </button>
+                          );
+                        })}
+                      </div>
                       {hiddenCount > 0 && (
                         <span className="calendar-grid-allday-overflow">+{hiddenCount} more</span>
                       )}
