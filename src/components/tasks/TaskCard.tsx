@@ -69,8 +69,39 @@ export default function TaskCard({
   // Only state needed: which direction the exit animation plays
   const [exiting, setExiting] = useState<'left' | 'right' | null>(null);
 
+  // ─── Shared swipe visuals (stable ref to avoid stale closures) ──
+  const applyVisualsRef = useRef<(dx: number) => void>(() => {});
+
   // ─── Snap-or-commit (stable ref to avoid stale closures) ────
   const snapOrCommitRef = useRef<(dx: number) => void>(() => {});
+
+  useEffect(() => {
+    applyVisualsRef.current = (dx: number) => {
+      const action = dx < 0
+        ? swipeLeftAction
+        : (swipeLeftAction === 'complete' ? 'delete' : 'complete');
+      const progress = Math.min(Math.abs(dx) / SWIPE_THRESHOLD, 1);
+      const color = action === 'complete' ? '#3B82F6' : '#EF4444';
+
+      if (cardRef.current) {
+        cardRef.current.style.transition = 'none';
+        const scale = reducedMotion ? 1 : 1 - progress * 0.02;
+        cardRef.current.style.transform = `translateX(${dx}px) scale(${scale})`;
+        const tintAlpha = progress * 0.15;
+        const tintColor = action === 'complete'
+          ? `rgba(59, 130, 246, ${tintAlpha})`
+          : `rgba(239, 68, 68, ${tintAlpha})`;
+        cardRef.current.style.setProperty('--swipe-tint', tintColor);
+      }
+      if (backdropRef.current) {
+        backdropRef.current.style.opacity = String(progress);
+        backdropRef.current.style.backgroundColor = color;
+      }
+      const iconProgress = Math.min(progress * 2, 1);
+      if (leftIconRef.current)  leftIconRef.current.style.opacity  = dx < 0 ? String(iconProgress) : '0';
+      if (rightIconRef.current) rightIconRef.current.style.opacity = dx > 0 ? String(iconProgress) : '0';
+    };
+  }, [swipeLeftAction, reducedMotion]);
 
   useEffect(() => {
     snapOrCommitRef.current = (dx: number) => {
@@ -82,7 +113,7 @@ export default function TaskCard({
         const exitDir = dx < 0 ? 'left' : 'right';
 
         if (reducedMotion) {
-          if (cardRef.current)     cardRef.current.style.transform = '';
+          if (cardRef.current)     { cardRef.current.style.transform = ''; cardRef.current.style.setProperty('--swipe-tint', 'transparent'); }
           if (backdropRef.current) { backdropRef.current.style.opacity = '0'; backdropRef.current.style.backgroundColor = ''; }
           if (leftIconRef.current)  leftIconRef.current.style.opacity = '0';
           if (rightIconRef.current) rightIconRef.current.style.opacity = '0';
@@ -91,7 +122,7 @@ export default function TaskCard({
           setExiting(exitDir);
           setTimeout(() => {
             setExiting(null);
-            if (cardRef.current)     cardRef.current.style.transform = '';
+            if (cardRef.current)     { cardRef.current.style.transform = ''; cardRef.current.style.setProperty('--swipe-tint', 'transparent'); }
             if (backdropRef.current) { backdropRef.current.style.opacity = '0'; backdropRef.current.style.backgroundColor = ''; }
             if (leftIconRef.current)  leftIconRef.current.style.opacity = '0';
             if (rightIconRef.current) rightIconRef.current.style.opacity = '0';
@@ -102,7 +133,8 @@ export default function TaskCard({
         // Snap back with spring feel
         if (cardRef.current) {
           cardRef.current.style.transition = 'transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)';
-          cardRef.current.style.transform = 'translateX(0)';
+          cardRef.current.style.transform = 'translateX(0) scale(1)';
+          cardRef.current.style.setProperty('--swipe-tint', 'transparent');
           const el = cardRef.current;
           setTimeout(() => { el.style.transition = ''; }, 310);
         }
@@ -150,26 +182,7 @@ export default function TaskCard({
       e.preventDefault();
 
       g.lastDx = dx;
-
-      const action = dx < 0
-        ? swipeLeftAction
-        : (swipeLeftAction === 'complete' ? 'delete' : 'complete');
-      const progress = Math.min(Math.abs(dx) / SWIPE_THRESHOLD, 1);
-      const color = action === 'complete' ? '#3B82F6' : '#EF4444';
-
-      // Direct DOM manipulation — no React re-render, guaranteed 60fps
-      if (cardRef.current) {
-        cardRef.current.style.transition = 'none';
-        cardRef.current.style.transform = `translateX(${dx}px)`;
-      }
-      if (backdropRef.current) {
-        backdropRef.current.style.opacity = String(progress);
-        backdropRef.current.style.backgroundColor = color;
-      }
-      // Icons fade in faster (2× speed) so they're visible early
-      const iconProgress = Math.min(progress * 2, 1);
-      if (leftIconRef.current)  leftIconRef.current.style.opacity  = dx < 0 ? String(iconProgress) : '0';
-      if (rightIconRef.current) rightIconRef.current.style.opacity = dx > 0 ? String(iconProgress) : '0';
+      applyVisualsRef.current(dx);
     }
 
     function onTouchEnd() {
@@ -213,24 +226,7 @@ export default function TaskCard({
       m.locked = true;
     }
     m.lastDx = dx;
-
-    const action = dx < 0
-      ? swipeLeftAction
-      : (swipeLeftAction === 'complete' ? 'delete' : 'complete');
-    const progress = Math.min(Math.abs(dx) / SWIPE_THRESHOLD, 1);
-    const color = action === 'complete' ? '#3B82F6' : '#EF4444';
-
-    if (cardRef.current) {
-      cardRef.current.style.transition = 'none';
-      cardRef.current.style.transform = `translateX(${dx}px)`;
-    }
-    if (backdropRef.current) {
-      backdropRef.current.style.opacity = String(progress);
-      backdropRef.current.style.backgroundColor = color;
-    }
-    const iconProgress = Math.min(progress * 2, 1);
-    if (leftIconRef.current)  leftIconRef.current.style.opacity  = dx < 0 ? String(iconProgress) : '0';
-    if (rightIconRef.current) rightIconRef.current.style.opacity = dx > 0 ? String(iconProgress) : '0';
+    applyVisualsRef.current(dx);
   }
 
   function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
@@ -243,7 +239,7 @@ export default function TaskCard({
 
   function handlePointerCancel() {
     mouseRef.current = null;
-    if (cardRef.current) { cardRef.current.style.transition = ''; cardRef.current.style.transform = ''; }
+    if (cardRef.current) { cardRef.current.style.transition = ''; cardRef.current.style.transform = ''; cardRef.current.style.setProperty('--swipe-tint', 'transparent'); }
     if (backdropRef.current) { backdropRef.current.style.opacity = '0'; backdropRef.current.style.backgroundColor = ''; }
     if (leftIconRef.current)  leftIconRef.current.style.opacity = '0';
     if (rightIconRef.current) rightIconRef.current.style.opacity = '0';

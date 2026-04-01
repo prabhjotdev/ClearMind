@@ -4,10 +4,9 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-md);
-  /* Prevent text selection while swiping */
   user-select: none;
-  /* No touch-action here — the non-passive touchmove listener + e.preventDefault()
-     handles scroll suppression during horizontal swipes on Android & iOS */
+  /* Let the browser handle vertical scrolling; JS handles horizontal swipe */
+  touch-action: pan-y;
 }
 
 /* Always in the DOM; opacity and background-color are set directly via JS
@@ -52,14 +51,14 @@
 
 @keyframes swipe-exit-left {
   to {
-    transform: translateX(-110%);
+    transform: translateX(-110%) scale(0.95);
     opacity: 0;
   }
 }
 
 @keyframes swipe-exit-right {
   to {
-    transform: translateX(110%);
+    transform: translateX(110%) scale(0.95);
     opacity: 0;
   }
 }
@@ -106,14 +105,24 @@ html[data-reduced-motion] .task-card--exiting-right {
   box-shadow: var(--shadow-card);
   border-left: 4px solid var(--priority-color, var(--color-p3));
   cursor: pointer;
-  /* position + z-index keep the card stacked above the swipe backdrop,
-     so the backdrop is revealed behind the sliding card (not overlaid on top) */
   position: relative;
   z-index: 1;
+  --swipe-tint: transparent;
   transition: box-shadow var(--duration-fast) var(--easing-default),
               opacity var(--duration-normal) var(--easing-default),
               transform var(--duration-normal) var(--easing-default);
   animation: task-card-enter var(--duration-normal) var(--easing-default) both;
+}
+
+/* Color tint overlay driven by JS during swipe */
+.task-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--swipe-tint);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .task-card:hover {
