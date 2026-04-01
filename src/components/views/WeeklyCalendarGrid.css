@@ -163,6 +163,7 @@
   display: flex;
   overflow-y: auto;
   user-select: none;
+  padding-top: 8px;
 }
 
 .calendar-grid-time-axis {
