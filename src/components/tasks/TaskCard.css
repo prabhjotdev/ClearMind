@@ -6,30 +6,30 @@
   border-radius: var(--radius-md);
   /* Prevent text selection while swiping */
   user-select: none;
-  touch-action: pan-y;
+  /* No touch-action here — the non-passive touchmove listener + e.preventDefault()
+     handles scroll suppression during horizontal swipes on Android & iOS */
 }
 
+/* Always in the DOM; opacity and background-color are set directly via JS
+   during a swipe so the browser can apply them on every animation frame */
 .task-swipe-bg {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 var(--space-xl);
   border-radius: var(--radius-md);
+  opacity: 0;          /* JS controls this */
+  pointer-events: none;
 }
 
-.task-swipe-bg--complete {
-  background: #3B82F6;
-  justify-content: flex-end;
-}
-
-.task-swipe-bg--delete {
-  background: #EF4444;
-  justify-content: flex-start;
-}
-
-.task-swipe-icon {
+/* Each side holds one action icon; JS controls opacity independently */
+.task-swipe-icon-slot {
+  display: flex;
+  align-items: center;
   color: white;
+  opacity: 0;          /* JS controls this */
 }
 
 /* Exit animations */

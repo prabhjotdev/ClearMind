@@ -308,6 +308,7 @@ export default function SettingsView() {
               </span>
               <select
                 className="settings-input-small"
+                style={{ width: 'auto', minWidth: '100px' }}
                 value={settings.swipeLeftAction}
                 onChange={(e) => updateSetting('swipeLeftAction', e.target.value)}
               >
