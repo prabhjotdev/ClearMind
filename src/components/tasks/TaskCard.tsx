@@ -303,9 +303,11 @@ export default function TaskCard({
       >
         <div ref={leftIconRef} className="task-swipe-icon-slot task-swipe-icon-slot--left">
           {leftAction === 'complete' ? <CheckIcon /> : <TrashIcon />}
+          <span className="task-swipe-icon-label">{leftAction === 'complete' ? 'Complete' : 'Delete'}</span>
         </div>
         <div ref={rightIconRef} className="task-swipe-icon-slot task-swipe-icon-slot--right">
           {rightAction === 'complete' ? <CheckIcon /> : <TrashIcon />}
+          <span className="task-swipe-icon-label">{rightAction === 'complete' ? 'Complete' : 'Delete'}</span>
         </div>
       </div>
 
