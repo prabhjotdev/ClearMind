@@ -12,6 +12,7 @@ const SHORTCUTS: ShortcutRow[] = [
   { key: 't', action: 'Go to Today', context: 'Any view' },
   { key: 'w', action: 'Go to Week view', context: 'Any view' },
   { key: 'm', action: 'Go to Month view', context: 'Any view' },
+  { key: 'o', action: 'Go to Notes', context: 'Any view' },
   { key: 'j', action: 'Next task', context: 'List views' },
   { key: 'k', action: 'Previous task', context: 'List views' },
   { key: 'Enter', action: 'Open task detail', context: 'Task focused' },

@@ -1,0 +1,134 @@
+.notes-view {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ─── Header ─── */
+.notes-view-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.notes-view-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.notes-view-count {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-bg-primary);
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-full);
+}
+
+/* ─── Category Filters ─── */
+.notes-view-filters {
+  display: flex;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--space-sm);
+  margin-bottom: var(--space-lg);
+  scrollbar-width: none;
+}
+
+.notes-view-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.notes-view-filter {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-card);
+  white-space: nowrap;
+  transition: all var(--duration-fast) var(--easing-default);
+  min-height: 36px;
+}
+
+.notes-view-filter:hover {
+  background: var(--color-bg-primary);
+}
+
+.notes-view-filter--active {
+  background: var(--color-text-primary);
+  color: white;
+  border-color: var(--color-text-primary);
+}
+
+/* ─── Sections ─── */
+.notes-view-section {
+  margin-bottom: var(--space-xl);
+}
+
+.notes-view-section-header {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-sm);
+  padding-left: var(--space-xs);
+}
+
+/* ─── Notes Grid ─── */
+.notes-view-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+@media (min-width: 768px) {
+  .notes-view {
+    max-width: 800px;
+  }
+
+  .notes-view-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-lg);
+  }
+}
+
+/* ─── Empty State ─── */
+.notes-view-empty {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-lg);
+}
+
+.notes-view-empty-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-lg);
+}
+
+.notes-view-empty-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.notes-view-empty-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-xl);
+}
+
+.notes-view-empty-cta {
+  padding: var(--space-md) var(--space-xl);
+  background: var(--color-text-primary);
+  color: white;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+.notes-view-empty-cta:hover {
+  opacity: 0.9;
+}
