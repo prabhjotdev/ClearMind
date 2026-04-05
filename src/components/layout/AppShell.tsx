@@ -42,6 +42,7 @@ export default function AppShell() {
   useKeyboardShortcut('t', useCallback(() => navigate('/'), [navigate]), shortcutsEnabled);
   useKeyboardShortcut('w', useCallback(() => navigate('/week'), [navigate]), shortcutsEnabled);
   useKeyboardShortcut('m', useCallback(() => navigate('/month'), [navigate]), shortcutsEnabled);
+  useKeyboardShortcut('o', useCallback(() => navigate('/notes'), [navigate]), shortcutsEnabled);
   useKeyboardShortcut('?', useCallback(() => showHelp(), [showHelp]), shortcutsEnabled);
 
   return (

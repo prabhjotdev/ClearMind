@@ -49,6 +49,25 @@ export interface Category {
   createdAt: Timestamp;
 }
 
+// ─── Note ───────────────────────────────────────────────────
+
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  categoryId: string;
+  isPinned: boolean;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  createdBy: string;
+}
+
+export type NoteFormData = {
+  title: string;
+  content: string;
+  categoryId: string;
+};
+
 // ─── Reminder ────────────────────────────────────────────────
 
 export type ReminderStatus = 'scheduled' | 'sent' | 'snoozed' | 'dismissed' | 'cancelled';

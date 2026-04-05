@@ -7,6 +7,7 @@ const navItems = [
   { to: '/', label: 'Today' },
   { to: '/week', label: 'Week' },
   { to: '/month', label: 'Month' },
+  { to: '/notes', label: 'Notes' },
 ];
 
 export default function Sidebar() {

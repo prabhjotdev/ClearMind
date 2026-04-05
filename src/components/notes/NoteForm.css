@@ -1,0 +1,132 @@
+.note-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: var(--space-lg);
+}
+
+.note-form-header {
+  display: flex;
+  justify-content: center;
+  padding-bottom: var(--space-sm);
+}
+
+.note-form-error {
+  background: var(--color-overdue-bg);
+  color: var(--color-error);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.note-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.note-form-label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.note-form-input {
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  background: var(--color-bg-card);
+  width: 100%;
+}
+
+.note-form-input:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.note-form-input--title {
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  border: none;
+  border-bottom: 2px solid var(--color-border);
+  border-radius: 0;
+  padding: var(--space-sm) 0;
+}
+
+.note-form-input--title:focus {
+  border-bottom-color: var(--color-border-focus);
+  box-shadow: none;
+}
+
+.note-form-textarea {
+  resize: vertical;
+  min-height: 120px;
+  font-family: var(--font-family);
+  line-height: 1.6;
+}
+
+.note-form-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.note-form-chip {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-card);
+  white-space: nowrap;
+  transition: all var(--duration-fast) var(--easing-default);
+  min-height: 36px;
+}
+
+.note-form-chip:hover {
+  background: var(--color-bg-primary);
+}
+
+.note-form-chip--active {
+  background: var(--color-text-primary);
+  color: white;
+  border-color: var(--color-text-primary);
+}
+
+.note-form-actions {
+  display: flex;
+  gap: var(--space-md);
+  padding-top: var(--space-sm);
+}
+
+.note-form-cancel {
+  flex: 1;
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-card);
+}
+
+.note-form-cancel:hover {
+  background: var(--color-bg-primary);
+}
+
+.note-form-submit {
+  flex: 2;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: white;
+  background: var(--color-text-primary);
+}
+
+.note-form-submit:hover {
+  opacity: 0.9;
+}
