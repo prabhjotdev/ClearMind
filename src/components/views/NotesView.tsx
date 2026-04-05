@@ -41,10 +41,17 @@ export default function NotesView() {
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
-    return subscribeToNotes(userId, (newNotes) => {
-      setNotes(newNotes);
-      setLoading(false);
-    });
+    return subscribeToNotes(
+      userId,
+      (newNotes) => {
+        setNotes(newNotes);
+        setLoading(false);
+      },
+      () => {
+        // On error (e.g. missing index), stop loading so empty state shows
+        setLoading(false);
+      }
+    );
   }, [userId]);
 
   const getCategoryForNote = useCallback(

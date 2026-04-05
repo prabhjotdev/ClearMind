@@ -77,21 +77,36 @@ export async function togglePin(
 
 export function subscribeToNotes(
   userId: string,
-  callback: (notes: Note[]) => void
+  callback: (notes: Note[]) => void,
+  onError?: (error: Error) => void
 ): () => void {
+  // Use a single orderBy to avoid requiring a composite Firestore index.
+  // Pinned-first sorting is handled client-side.
   const q = query(
     notesCollection(userId),
-    orderBy('isPinned', 'desc'),
     orderBy('updatedAt', 'desc')
   );
 
-  return onSnapshot(q, (snapshot) => {
-    const notes = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Note[];
-    callback(notes);
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const notes = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Note[];
+      // Sort pinned notes to the top
+      notes.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return 0;
+      });
+      callback(notes);
+    },
+    (error) => {
+      console.error('Error subscribing to notes:', error);
+      onError?.(error);
+    }
+  );
 }
 
 export async function getAllNotesForExport(
