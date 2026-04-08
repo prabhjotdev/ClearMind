@@ -197,3 +197,70 @@
 .day-view-empty-cta:hover {
   opacity: 0.9;
 }
+
+/* ─── Drag-and-drop ─────────────────────────────────────────── */
+
+/* Root state while dragging: block text selection and disable swipe on all cards */
+.day-view--dragging {
+  user-select: none;
+}
+
+.day-view--dragging .task-swipe-wrapper {
+  pointer-events: none;
+}
+
+/* Source card is dimmed in-place while being dragged */
+.task-card-wrapper--dragging {
+  opacity: 0.3;
+  border-radius: var(--radius-md);
+}
+
+/* Floating ghost card that follows the cursor */
+.task-drag-ghost {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.9;
+  transform: scale(1.03) rotate(0.8deg);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  padding: var(--space-md);
+  transition: none; /* must follow cursor exactly — no lag */
+}
+
+/* Reduced-motion variant: no scale or rotation */
+.task-drag-ghost--reduced {
+  transform: none;
+  opacity: 0.85;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Drop indicator line between cards */
+.drag-drop-indicator {
+  height: 3px;
+  background: var(--color-p3);
+  border-radius: var(--radius-full);
+  margin: 2px 0;
+  animation: drop-indicator-appear var(--duration-fast) var(--easing-default) both;
+  transform-origin: left center;
+}
+
+@keyframes drop-indicator-appear {
+  from {
+    transform: scaleX(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* Priority section highlight when a task is dragged over it */
+.day-view-section--drag-over {
+  outline: 2px dashed var(--color-border-focus);
+  outline-offset: 6px;
+  border-radius: var(--radius-md);
+  transition: outline-color var(--duration-fast) var(--easing-default);
+}

@@ -232,3 +232,43 @@ html[data-high-contrast] .task-card {
     animation: none;
   }
 }
+
+/* ─── Drag handle ───────────────────────────────────────────── */
+
+.task-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  cursor: grab;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--easing-default);
+  margin-right: var(--space-xs);
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) 0;
+}
+
+.task-swipe-wrapper:hover .task-drag-handle,
+.task-swipe-wrapper:focus-within .task-drag-handle {
+  opacity: 1;
+}
+
+/* Always visible on touch devices */
+@media (pointer: coarse) {
+  .task-drag-handle {
+    opacity: 0.4;
+  }
+}
+
+.task-drag-handle:hover {
+  opacity: 1;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-primary);
+}
+
+.task-drag-handle:active {
+  cursor: grabbing;
+}
