@@ -224,46 +224,6 @@ export default function TaskCard({
     };
   }, [swipeLeftAction, exiting]);
 
-  // ─── Desktop mouse swipe (pointer events, JSX props) ─────────
-  const mouseRef = useRef<{ startX: number; locked: boolean; lastDx: number } | null>(null);
-
-  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    if (e.pointerType !== 'mouse' || e.button !== 0) return;
-    mouseRef.current = { startX: e.clientX, locked: false, lastDx: 0 };
-    (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
-    wasSwipedRef.current = false;
-  }
-
-  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (e.pointerType !== 'mouse') return;
-    const m = mouseRef.current;
-    if (!m) return;
-
-    const dx = e.clientX - m.startX;
-    if (!m.locked) {
-      if (Math.abs(dx) < 5) return;
-      m.locked = true;
-    }
-    m.lastDx = dx;
-    applyVisualsRef.current(dx);
-  }
-
-  function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
-    if (e.pointerType !== 'mouse') return;
-    const m = mouseRef.current;
-    mouseRef.current = null;
-    if (!m || !m.locked) return;
-    snapOrCommitRef.current(m.lastDx);
-  }
-
-  function handlePointerCancel() {
-    mouseRef.current = null;
-    if (cardRef.current) { cardRef.current.style.transition = ''; cardRef.current.style.transform = ''; cardRef.current.style.setProperty('--swipe-tint', 'transparent'); }
-    if (backdropRef.current) { backdropRef.current.style.opacity = '0'; backdropRef.current.style.backgroundColor = ''; }
-    if (leftIconRef.current)  leftIconRef.current.style.opacity = '0';
-    if (rightIconRef.current) rightIconRef.current.style.opacity = '0';
-  }
-
   // ─── Keyboard & click handlers ───────────────────────────────
   function handleCheckboxClick(e: React.MouseEvent) {
     e.stopPropagation();
@@ -302,14 +262,7 @@ export default function TaskCard({
   const rightAction = swipeLeftAction === 'complete' ? 'delete' : 'complete';  // right swipe action
 
   return (
-    <div
-      ref={wrapperRef}
-      className="task-swipe-wrapper"
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerCancel}
-    >
+    <div ref={wrapperRef} className="task-swipe-wrapper">
       {/* Backdrop — always in DOM, opacity/color driven by JS during swipe */}
       <div
         ref={backdropRef}
