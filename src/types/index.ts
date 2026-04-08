@@ -24,6 +24,7 @@ export interface Task {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   createdBy: string;
+  sortOrder?: number;
 }
 
 export type TaskFormData = {

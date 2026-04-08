@@ -16,9 +16,26 @@ interface TaskCardProps {
   swipeLeftAction?: 'complete' | 'delete';
   /** When true, skip exit slide animation */
   reducedMotion?: boolean;
+  /** Show a drag handle for reordering */
+  isDraggable?: boolean;
+  /** Called when the drag handle is pressed — parent owns drag logic */
+  onDragHandlePointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void;
 }
 
 const SWIPE_THRESHOLD = 80; // px
+
+function GripIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <circle cx="5" cy="4" r="1.5" />
+      <circle cx="11" cy="4" r="1.5" />
+      <circle cx="5" cy="8" r="1.5" />
+      <circle cx="11" cy="8" r="1.5" />
+      <circle cx="5" cy="12" r="1.5" />
+      <circle cx="11" cy="12" r="1.5" />
+    </svg>
+  );
+}
 
 function CheckIcon() {
   return (
@@ -46,6 +63,8 @@ export default function TaskCard({
   isFocused = false,
   swipeLeftAction = 'complete',
   reducedMotion = false,
+  isDraggable = false,
+  onDragHandlePointerDown,
 }: TaskCardProps) {
   const priorityConfig = PRIORITY_CONFIG[task.priority];
   const isCompleted = task.status === 'completed';
@@ -317,6 +336,20 @@ export default function TaskCard({
         role="article"
         aria-label={`${task.name}, ${priorityConfig.label}${dueTimeStr ? `, due ${dueTimeStr}` : ''}${category ? `, ${category.name}` : ''}`}
       >
+        {isDraggable && (
+          <div
+            className="task-drag-handle"
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              onDragHandlePointerDown?.(e);
+            }}
+            aria-label="Drag to reorder"
+            title="Drag to reorder"
+          >
+            <GripIcon />
+          </div>
+        )}
+
         <div
           className="task-card-checkbox"
           role="checkbox"

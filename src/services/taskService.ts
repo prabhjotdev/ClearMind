@@ -276,6 +276,25 @@ export function groupTasksByPriority(tasks: Task[]): Record<Priority, Task[]> {
   return groups;
 }
 
+// ─── Reorder ──────────────────────────────────────────────────
+
+export async function reorderTasks(
+  userId: string,
+  updates: { taskId: string; sortOrder: number; priority?: Priority }[]
+): Promise<void> {
+  if (updates.length === 0) return;
+  const batch = writeBatch(db);
+  const now = Timestamp.now();
+
+  updates.forEach(({ taskId, sortOrder, priority }) => {
+    const updateData: Record<string, any> = { sortOrder, updatedAt: now };
+    if (priority !== undefined) updateData.priority = priority;
+    batch.update(taskDoc(userId, taskId), updateData);
+  });
+
+  await batch.commit();
+}
+
 // ─── Export / Delete ──────────────────────────────────────────
 
 export async function getAllTasksForExport(

@@ -15,6 +15,7 @@ import {
   groupTasksByPriority,
   createTask,
   updateTask,
+  reorderTasks,
 } from '../../services/taskService';
 import {
   scheduleRemindersForTask,
@@ -57,6 +58,47 @@ export default function DayView() {
   // Keyboard navigation: index into the flattened visible task list
   const [focusedTaskIndex, setFocusedTaskIndex] = useState<number>(-1);
   const repeatWindowFilledRef = useRef(false);
+
+  // ─── Drag-and-drop state ────────────────────────────────────
+  // useRef for the drag state itself to avoid re-rendering on every pointermove
+  const dragStateRef = useRef<{
+    taskId: string;
+    sourcePriority: Priority;
+    sourceIndex: number;
+    cardRect: DOMRect;
+    offsetX: number;
+    offsetY: number;
+    pointerX: number;
+    pointerY: number;
+    pointerId: number;
+  } | null>(null);
+
+  // Refs to individual task wrapper divs (keyed by taskId)
+  const taskItemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  // Refs to each priority section's task list container
+  const sectionListRefs = useRef<Map<Priority, HTMLDivElement>>(new Map());
+  // Ref to the root .day-view div for pointer capture
+  const dayViewRootRef = useRef<HTMLDivElement>(null);
+  // rAF handle for throttling pointermove updates
+  const rafRef = useRef<number | null>(null);
+
+  // These two cause re-renders — updated only when visual state changes
+  const [ghostInfo, setGhostInfo] = useState<{
+    task: Task;
+    x: number;
+    y: number;
+    width: number;
+  } | null>(null);
+  const [dropIndicator, setDropIndicator] = useState<{
+    priority: Priority;
+    insertIndex: number;
+  } | null>(null);
+  const [isDraggingActive, setIsDraggingActive] = useState(false);
+
+  // Local task order per priority group — source of truth for rendering order
+  const [localGrouped, setLocalGrouped] = useState<Record<Priority, Task[]>>({
+    P1: [], P2: [], P3: [],
+  });
 
   const userId = currentUser?.uid;
   const shortcutsEnabled = settings.keyboardShortcutsEnabled;
@@ -104,6 +146,196 @@ export default function DayView() {
   useEffect(() => {
     setFocusedTaskIndex(-1);
   }, [currentDate]);
+
+  // Seed localGrouped whenever Firestore tasks update (but not during an active drag)
+  useEffect(() => {
+    if (dragStateRef.current) return; // don't disrupt an in-progress drag
+    const active = tasks.filter((t) => t.status === 'active');
+    const grouped = groupTasksByPriority(active);
+    const sorted: Record<Priority, Task[]> = { P1: [], P2: [], P3: [] };
+    (['P1', 'P2', 'P3'] as Priority[]).forEach((p) => {
+      sorted[p] = [...(grouped[p] || [])].sort((a, b) => {
+        const oa = a.sortOrder !== undefined ? a.sortOrder : a.createdAt.seconds;
+        const ob = b.sortOrder !== undefined ? b.sortOrder : b.createdAt.seconds;
+        return oa - ob;
+      });
+    });
+    setLocalGrouped(sorted);
+  }, [tasks]);
+
+  // ─── Drag-and-drop helpers ──────────────────────────────────
+
+  // Computes which priority group and insertion index the pointer is over
+  const computeDropTarget = useCallback(
+    (px: number, py: number): { priority: Priority; insertIndex: number } | null => {
+      for (const priority of ['P1', 'P2', 'P3'] as Priority[]) {
+        const listEl = sectionListRefs.current.get(priority);
+        if (!listEl) continue;
+        const sectionEl = listEl.closest('.day-view-section') as HTMLElement | null;
+        if (!sectionEl) continue;
+        const sectionRect = sectionEl.getBoundingClientRect();
+        // Include 24px padding above/below each section for easier cross-group drops
+        if (py < sectionRect.top - 24 || py > sectionRect.bottom + 24) continue;
+
+        const group = localGrouped[priority];
+        let insertIndex = group.length; // default: append at end
+        for (let i = 0; i < group.length; i++) {
+          const itemEl = taskItemRefs.current.get(group[i].id);
+          if (!itemEl) continue;
+          const itemRect = itemEl.getBoundingClientRect();
+          if (py < itemRect.top + itemRect.height / 2) {
+            insertIndex = i;
+            break;
+          }
+        }
+        return { priority, insertIndex };
+      }
+      return null;
+    },
+    [localGrouped]
+  );
+
+  function handleDragHandlePointerDown(e: React.PointerEvent<HTMLDivElement>, task: Task) {
+    const cardEl = taskItemRefs.current.get(task.id);
+    if (!cardEl) return;
+    const cardRect = cardEl.getBoundingClientRect();
+    const sourcePriority = task.priority as Priority;
+    const sourceIndex = localGrouped[sourcePriority].findIndex((t) => t.id === task.id);
+
+    dragStateRef.current = {
+      taskId: task.id,
+      sourcePriority,
+      sourceIndex,
+      cardRect,
+      offsetX: e.clientX - cardRect.left,
+      offsetY: e.clientY - cardRect.top,
+      pointerX: e.clientX,
+      pointerY: e.clientY,
+      pointerId: e.pointerId,
+    };
+
+    setGhostInfo({
+      task,
+      x: cardRect.left,
+      y: cardRect.top,
+      width: cardRect.width,
+    });
+    setIsDraggingActive(true);
+
+    // Capture pointer on the root div so we get events even when cursor leaves cards
+    dayViewRootRef.current?.setPointerCapture(e.pointerId);
+  }
+
+  function handleDayViewPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    const ds = dragStateRef.current;
+    if (!ds) return;
+    ds.pointerX = e.clientX;
+    ds.pointerY = e.clientY;
+
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      const ds2 = dragStateRef.current;
+      if (!ds2) return;
+
+      setGhostInfo((prev) =>
+        prev
+          ? { ...prev, x: ds2.pointerX - ds2.offsetX, y: ds2.pointerY - ds2.offsetY }
+          : null
+      );
+      setDropIndicator(computeDropTarget(ds2.pointerX, ds2.pointerY));
+    });
+  }
+
+  async function handleDayViewPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+
+    const ds = dragStateRef.current;
+    dragStateRef.current = null;
+    setIsDraggingActive(false);
+    setGhostInfo(null);
+    setDropIndicator(null);
+
+    if (!ds || !userId) return;
+
+    dayViewRootRef.current?.releasePointerCapture(ds.pointerId);
+
+    const target = computeDropTarget(ds.pointerX, ds.pointerY);
+    if (!target) return;
+
+    const sameGroup = target.priority === ds.sourcePriority;
+    // Adjust index: when moving down in the same group, the removal shifts indices
+    const adjustedIndex =
+      sameGroup && target.insertIndex > ds.sourceIndex
+        ? target.insertIndex - 1
+        : target.insertIndex;
+
+    // No-op: same position in same group
+    if (sameGroup && adjustedIndex === ds.sourceIndex) return;
+
+    // Build new ordered groups
+    const newGrouped: Record<Priority, Task[]> = {
+      P1: [...localGrouped.P1],
+      P2: [...localGrouped.P2],
+      P3: [...localGrouped.P3],
+    };
+
+    const task = newGrouped[ds.sourcePriority].find((t) => t.id === ds.taskId);
+    if (!task) return;
+
+    // Remove from source group
+    newGrouped[ds.sourcePriority] = newGrouped[ds.sourcePriority].filter(
+      (t) => t.id !== ds.taskId
+    );
+
+    // If priority changed, update the task's priority in the object
+    const movedTask = sameGroup ? task : { ...task, priority: target.priority as Priority };
+
+    // Insert into target group
+    const insertAt = sameGroup ? adjustedIndex : target.insertIndex;
+    newGrouped[target.priority].splice(insertAt, 0, movedTask);
+
+    // Apply optimistically
+    setLocalGrouped(newGrouped);
+
+    // Build Firestore batch updates (reindex affected groups)
+    const updates: { taskId: string; sortOrder: number; priority?: Priority }[] = [];
+
+    newGrouped[ds.sourcePriority].forEach((t, i) => {
+      updates.push({ taskId: t.id, sortOrder: i * 100 });
+    });
+
+    if (!sameGroup) {
+      newGrouped[target.priority].forEach((t, i) => {
+        const update: { taskId: string; sortOrder: number; priority?: Priority } = {
+          taskId: t.id,
+          sortOrder: i * 100,
+        };
+        if (t.id === ds.taskId) update.priority = target.priority as Priority;
+        updates.push(update);
+      });
+    }
+
+    try {
+      await reorderTasks(userId, updates);
+    } catch {
+      showToast('Failed to save order — please try again');
+      // Revert to Firestore state
+      const active = tasks.filter((t) => t.status === 'active');
+      const grouped = groupTasksByPriority(active);
+      const sorted: Record<Priority, Task[]> = { P1: [], P2: [], P3: [] };
+      (['P1', 'P2', 'P3'] as Priority[]).forEach((p) => {
+        sorted[p] = [...(grouped[p] || [])].sort((a, b) => {
+          const oa = a.sortOrder !== undefined ? a.sortOrder : a.createdAt.seconds;
+          const ob = b.sortOrder !== undefined ? b.sortOrder : b.createdAt.seconds;
+          return oa - ob;
+        });
+      });
+      setLocalGrouped(sorted);
+    }
+  }
 
   const getCategoryForTask = useCallback(
     (task: Task) => categories.find((c) => c.id === task.categoryId),
@@ -278,7 +510,6 @@ export default function DayView() {
 
   const activeTasks = tasks.filter((t) => t.status === 'active');
   const completedTasks = tasks.filter((t) => t.status === 'completed');
-  const grouped = groupTasksByPriority(activeTasks);
   const totalActive = activeTasks.length;
   const totalCompleted = completedTasks.length;
   const totalAll = totalActive + totalCompleted;
@@ -286,9 +517,9 @@ export default function DayView() {
   // Flat ordered list used for j/k navigation (visual order)
   const allVisibleTasks: Task[] = [
     ...overdueTasks,
-    ...(grouped['P1'] || []),
-    ...(grouped['P2'] || []),
-    ...(grouped['P3'] || []),
+    ...(localGrouped['P1'] || []),
+    ...(localGrouped['P2'] || []),
+    ...(localGrouped['P3'] || []),
     ...completedTasks,
   ];
 
@@ -352,7 +583,12 @@ export default function DayView() {
   );
 
   return (
-    <div className="day-view">
+    <div
+      ref={dayViewRootRef}
+      className={`day-view${isDraggingActive ? ' day-view--dragging' : ''}`}
+      onPointerMove={isDraggingActive ? handleDayViewPointerMove : undefined}
+      onPointerUp={isDraggingActive ? handleDayViewPointerUp : undefined}
+    >
       {/* Date Navigation */}
       <div className="day-view-nav">
         <button
@@ -459,32 +695,67 @@ export default function DayView() {
 
       {/* Task Sections by Priority */}
       {!loading && ((['P1', 'P2', 'P3'] as Priority[]).map((priority) => {
-        const group = grouped[priority];
+        const group = localGrouped[priority];
         if (group.length === 0) return null;
         const config = PRIORITY_CONFIG[priority];
+        const isDragOver = isDraggingActive && dropIndicator?.priority === priority;
 
         return (
-          <section key={priority} className="day-view-section">
+          <section
+            key={priority}
+            className={`day-view-section${isDragOver ? ' day-view-section--drag-over' : ''}`}
+          >
             <h3
               className="day-view-section-header"
               style={{ color: `var(--color-${priority.toLowerCase()})` }}
             >
               {config.label} ({group.length})
             </h3>
-            <div className="day-view-task-list">
-              {group.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  category={getCategoryForTask(task)}
-                  onComplete={handleComplete}
-                  onDelete={handleDelete}
-                  onClick={setSelectedTask}
-                  isFocused={allVisibleTasks.indexOf(task) === focusedTaskIndex}
-                  swipeLeftAction={settings.swipeLeftAction}
-                  reducedMotion={settings.reducedMotion}
-                />
+            <div
+              className="day-view-task-list"
+              ref={(el) => {
+                if (el) sectionListRefs.current.set(priority, el);
+              }}
+            >
+              {group.map((task, idx) => (
+                <React.Fragment key={task.id}>
+                  {isDraggingActive &&
+                    dropIndicator?.priority === priority &&
+                    dropIndicator.insertIndex === idx && (
+                      <div className="drag-drop-indicator" aria-hidden="true" />
+                    )}
+                  <div
+                    ref={(el) => {
+                      if (el) taskItemRefs.current.set(task.id, el);
+                      else taskItemRefs.current.delete(task.id);
+                    }}
+                    className={
+                      dragStateRef.current?.taskId === task.id
+                        ? 'task-card-wrapper--dragging'
+                        : undefined
+                    }
+                  >
+                    <TaskCard
+                      task={task}
+                      category={getCategoryForTask(task)}
+                      onComplete={handleComplete}
+                      onDelete={handleDelete}
+                      onClick={setSelectedTask}
+                      isFocused={allVisibleTasks.indexOf(task) === focusedTaskIndex}
+                      swipeLeftAction={settings.swipeLeftAction}
+                      reducedMotion={settings.reducedMotion}
+                      isDraggable
+                      onDragHandlePointerDown={(e) => handleDragHandlePointerDown(e, task)}
+                    />
+                  </div>
+                </React.Fragment>
               ))}
+              {/* Drop indicator at end of group */}
+              {isDraggingActive &&
+                dropIndicator?.priority === priority &&
+                dropIndicator.insertIndex === group.length && (
+                  <div className="drag-drop-indicator" aria-hidden="true" />
+                )}
             </div>
           </section>
         );
@@ -526,6 +797,30 @@ export default function DayView() {
           >
             + Add a task
           </button>
+        </div>
+      )}
+
+      {/* Drag ghost — fixed-position card clone that follows the cursor */}
+      {ghostInfo && (
+        <div
+          className={`task-drag-ghost${settings.reducedMotion ? ' task-drag-ghost--reduced' : ''}`}
+          style={{
+            left: ghostInfo.x,
+            top: ghostInfo.y,
+            width: ghostInfo.width,
+          }}
+          aria-hidden="true"
+        >
+          <div
+            className="task-card"
+            style={{
+              '--priority-color': `var(--color-${ghostInfo.task.priority.toLowerCase()})`,
+            } as React.CSSProperties}
+          >
+            <div className="task-card-content">
+              <span className="task-card-name">{ghostInfo.task.name}</span>
+            </div>
+          </div>
         </div>
       )}
 
