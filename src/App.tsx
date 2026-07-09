@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { SyncProvider } from './contexts/SyncContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { GamificationProvider } from './contexts/GamificationContext';
 import { KeyboardShortcutsProvider } from './contexts/KeyboardShortcutsContext';
 import AppShell from './components/layout/AppShell';
 import LoginPage from './components/auth/LoginPage';
@@ -18,6 +19,7 @@ const WeekView = lazy(() => import('./components/views/WeekView'));
 const MonthView = lazy(() => import('./components/views/MonthView'));
 const SettingsView = lazy(() => import('./components/views/SettingsView'));
 const NotesView = lazy(() => import('./components/views/NotesView'));
+const PokedexView = lazy(() => import('./components/views/PokedexView'));
 
 function LoadingScreen() {
   return (
@@ -76,6 +78,7 @@ function AppRoutes() {
           <Route path="/week" element={<WeekView />} />
           <Route path="/month" element={<MonthView />} />
           <Route path="/notes" element={<NotesView />} />
+          <Route path="/pokedex" element={<PokedexView />} />
           <Route path="/settings" element={<SettingsView />} />
         </Route>
 
@@ -93,9 +96,11 @@ export default function App() {
         <ToastProvider>
           <SyncProvider>
             <SettingsProvider>
-              <KeyboardShortcutsProvider>
-                <AppRoutes />
-              </KeyboardShortcutsProvider>
+              <GamificationProvider>
+                <KeyboardShortcutsProvider>
+                  <AppRoutes />
+                </KeyboardShortcutsProvider>
+              </GamificationProvider>
             </SettingsProvider>
           </SyncProvider>
         </ToastProvider>

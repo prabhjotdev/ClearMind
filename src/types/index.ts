@@ -132,6 +132,8 @@ export interface UserSettings {
   swipeLeftAction: SwipeLeftAction;
   fcmToken: string | null;
   lastSyncAt: Timestamp;
+  gamificationEnabled: boolean;
+  gamificationBannerDismissed: boolean;
 }
 
 // ─── UI Helpers ──────────────────────────────────────────────
@@ -181,6 +183,38 @@ export const DEFAULT_SETTINGS: UserSettings = {
   swipeLeftAction: 'complete',
   fcmToken: null,
   lastSyncAt: Timestamp.now(),
+  gamificationEnabled: false,
+  gamificationBannerDismissed: false,
+};
+
+// ─── Gamification ────────────────────────────────────────────
+// Purely additive by design: companionXp/focusPoints/lifetimeFocusPointsEarned
+// only ever increase. There is no streak, decay, or inactivity penalty anywhere
+// in this model — see docs/01-PRD.md non-goals for why that matters here.
+
+export interface GamificationState {
+  companionXp: number;
+  companionLevel: number;
+  companionSpeciesId: string;
+  focusPoints: number;
+  lifetimeFocusPointsEarned: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface PokedexEntry {
+  speciesId: string;
+  firstCaughtAt: Timestamp;
+  caughtCount: number;
+  routeId: string;
+}
+
+export const DEFAULT_GAMIFICATION_STATE: Omit<GamificationState, 'createdAt' | 'updatedAt'> = {
+  companionXp: 0,
+  companionLevel: 1,
+  companionSpeciesId: '',
+  focusPoints: 0,
+  lifetimeFocusPointsEarned: 0,
 };
 
 export const DEFAULT_CATEGORIES: Omit<Category, 'id' | 'createdAt'>[] = [

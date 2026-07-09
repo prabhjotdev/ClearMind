@@ -153,6 +153,36 @@ export default function SettingsView() {
         )}
       </section>
 
+      {/* Gamification */}
+      <section className="settings-section">
+        <button
+          className="settings-section-title settings-section-toggle"
+          onClick={() => toggleSection('gamification')}
+          aria-expanded={expandedSection === 'gamification'}
+        >
+          Companion & Collecting {expandedSection === 'gamification' ? '▴' : '▾'}
+        </button>
+        {expandedSection === 'gamification' && (
+          <div className="settings-card">
+            <label className="settings-toggle-row">
+              <span>
+                Pokemon companion & collecting
+                <span className="settings-toggle-hint">
+                  Completing tasks grows a companion and earns points to find Pokemon. Purely
+                  additive — nothing is ever lost for an inactive day.
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                className="settings-checkbox"
+                checked={settings.gamificationEnabled}
+                onChange={(e) => updateSetting('gamificationEnabled', e.target.checked)}
+              />
+            </label>
+          </div>
+        )}
+      </section>
+
       {/* Notifications */}
       <section className="settings-section">
         <button

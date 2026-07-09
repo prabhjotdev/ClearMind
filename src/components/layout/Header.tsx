@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useSyncContext } from '../../contexts/SyncContext';
 import NotificationPanel from '../notifications/NotificationPanel';
 import Logo from '../common/Logo';
+import FocusPointsBadge from '../gamification/FocusPointsBadge';
 import './Header.css';
 
 export default function Header() {
@@ -62,6 +63,8 @@ export default function Header() {
 
         {currentUser && (
           <>
+            <FocusPointsBadge />
+
             {/* Notification Bell */}
             <button
               className="app-header-bell"

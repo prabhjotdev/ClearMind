@@ -43,7 +43,7 @@ A calm, focused task management PWA that:
 | Real-time collaboration / shared boards | Adds complexity; focus on individual use first |
 | AI-powered task suggestions | Scope creep; can be v3+ |
 | Integration with Google Calendar / Outlook | Valuable but deferred to v2 |
-| Gamification (streaks, XP, badges) | Can backfire for ADHD users (shame spiral on missed days) |
+| Streak/loss-based gamification (streaks, decaying scores, badges tied to consistency) | Can backfire for ADHD users (shame spiral on missed days). A purely additive, opt-in exception — a companion/collection system where nothing ever decreases due to inactivity — was added later; see `docs/10-GAMIFICATION.md`. |
 | Sub-tasks / nested task hierarchies | Increases cognitive load; flat list with categories is enough for MVP |
 | Natural language input ("do laundry tomorrow at 3pm") | Nice-to-have, not MVP |
 | Dark mode | Deferred to v1 (high-contrast mode covers accessibility) |

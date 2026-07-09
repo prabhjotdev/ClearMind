@@ -44,6 +44,50 @@ service cloud.firestore {
         allow read, write: if request.auth != null
                            && request.auth.uid == userId;
       }
+
+      // Gamification state (companion XP/level, spendable Focus Points).
+      // Purely additive by design (see docs/01-PRD.md non-goals): companionXp
+      // may never decrease. focusPoints is spendable so it may go down, but
+      // never below zero.
+      match /gamification/state {
+        allow read: if request.auth != null
+                    && request.auth.uid == userId;
+
+        allow create: if request.auth != null
+                      && request.auth.uid == userId
+                      && request.resource.data.focusPoints is int
+                      && request.resource.data.focusPoints >= 0
+                      && request.resource.data.companionXp is int
+                      && request.resource.data.companionXp >= 0;
+
+        allow update: if request.auth != null
+                      && request.auth.uid == userId
+                      && request.resource.data.focusPoints is int
+                      && request.resource.data.focusPoints >= 0
+                      && request.resource.data.companionXp is int
+                      && request.resource.data.companionXp >= resource.data.companionXp;
+
+        allow delete: if false;
+      }
+
+      // Pokedex sub-collection — one doc per discovered species. caughtCount
+      // only ever increases; species are never removed once discovered.
+      match /pokedex/{speciesId} {
+        allow read: if request.auth != null
+                    && request.auth.uid == userId;
+
+        allow create: if request.auth != null
+                      && request.auth.uid == userId
+                      && request.resource.data.caughtCount is int
+                      && request.resource.data.caughtCount >= 1;
+
+        allow update: if request.auth != null
+                      && request.auth.uid == userId
+                      && request.resource.data.caughtCount is int
+                      && request.resource.data.caughtCount >= resource.data.caughtCount;
+
+        allow delete: if false;
+      }
     }
 
     // Deny all other access

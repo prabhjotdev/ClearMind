@@ -11,7 +11,9 @@ firestore-root/
 │   ├── tasks/{taskId}          ← Individual task documents
 │   ├── categories/{categoryId} ← User-defined categories
 │   ├── settings (document)     ← User preferences (single doc)
-│   └── reminders/{reminderId}  ← Scheduled reminders
+│   ├── reminders/{reminderId}  ← Scheduled reminders
+│   ├── gamification/state      ← Companion XP/level + Focus Points (single doc, opt-in)
+│   └── pokedex/{speciesId}     ← Discovered Pokemon (one doc per species, opt-in)
 ```
 
 ---
@@ -142,6 +144,10 @@ interface UserSettings {
   // System
   fcmToken: string | null;             // Firebase Cloud Messaging token
   lastSyncAt: Timestamp;
+
+  // Gamification (opt-in)
+  gamificationEnabled: boolean;         // default: false
+  gamificationBannerDismissed: boolean; // default: false — hides the one-time intro banner
 }
 ```
 
@@ -179,6 +185,45 @@ interface Reminder {
 - Cloud Functions can query `reminders` where `scheduledAt <= now AND status == 'scheduled'` on a cron schedule.
 - Keeps reminder logic decoupled from task documents.
 - Allows multiple reminders per task without array manipulation.
+
+---
+
+## Document: `users/{userId}/gamification/state`
+
+A single document (not a sub-collection) holding the opt-in gamification feature's per-user state. See `docs/10-GAMIFICATION.md` for the full feature design.
+
+```typescript
+interface GamificationState {
+  companionXp: number;              // Lifetime cumulative total, never decreases
+  companionLevel: number;           // Derived from companionXp, cached for fast reads
+  companionSpeciesId: string;       // Current companion evolution stage
+  focusPoints: number;              // Spendable balance (can decrease when spent, never below 0)
+  lifetimeFocusPointsEarned: number; // Lifetime total earned, never decreases
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+```
+
+**Why no per-task award ledger?** Reversing an award (undo) is only ever triggered from the same 6-second undo-toast closure created at task-completion time — see `src/hooks/useTaskCompletion.ts`. A later, out-of-band "uncomplete" (re-tapping a completed task) does not claw back XP/points. This means no ledger of "which tasks already earned an award" is needed, avoiding unbounded document growth.
+
+**Why is this purely additive?** `docs/01-PRD.md` explicitly excludes streak/loss-based gamification because it can trigger shame spirals for ADHD users. `companionXp` and `lifetimeFocusPointsEarned` never decrease; `focusPoints` only decreases when the user deliberately spends it, never due to inactivity.
+
+---
+
+## Sub-Collection: `users/{userId}/pokedex`
+
+### Document: `pokedex/{speciesId}`
+
+```typescript
+interface PokedexEntry {
+  speciesId: string;      // = doc id; references a species in src/data/gamificationContent.ts
+  firstCaughtAt: Timestamp;
+  caughtCount: number;    // Increments on repeat catches, never decreases
+  routeId: string;        // Which route it was first caught on
+}
+```
+
+One document per **species discovered**, not per catch — a repeat catch increments `caughtCount` on the existing doc. Collection completion % is computed client-side as `pokedexEntries.length / SPECIES.length` (species content is static/bundled, not stored in Firestore).
 
 ---
 
@@ -263,6 +308,35 @@ service cloud.firestore {
         allow read, write: if request.auth != null
                            && request.auth.uid == userId;
       }
+
+      // Gamification state (opt-in) — companionXp may only increase;
+      // focusPoints may decrease (when spent) but never below 0.
+      match /gamification/state {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null && request.auth.uid == userId
+                      && request.resource.data.focusPoints is int
+                      && request.resource.data.focusPoints >= 0
+                      && request.resource.data.companionXp is int
+                      && request.resource.data.companionXp >= 0;
+        allow update: if request.auth != null && request.auth.uid == userId
+                      && request.resource.data.focusPoints is int
+                      && request.resource.data.focusPoints >= 0
+                      && request.resource.data.companionXp is int
+                      && request.resource.data.companionXp >= resource.data.companionXp;
+        allow delete: if false;
+      }
+
+      // Pokedex sub-collection (opt-in) — caughtCount only ever increases.
+      match /pokedex/{speciesId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null && request.auth.uid == userId
+                      && request.resource.data.caughtCount is int
+                      && request.resource.data.caughtCount >= 1;
+        allow update: if request.auth != null && request.auth.uid == userId
+                      && request.resource.data.caughtCount is int
+                      && request.resource.data.caughtCount >= resource.data.caughtCount;
+        allow delete: if false;
+      }
     }
 
     // Deny all other access
@@ -283,6 +357,8 @@ service cloud.firestore {
 | categories | 3–10 | ~200 bytes | ~1,000 (cached after first load) |
 | settings | 1 | ~300 bytes | ~100 (cached, rarely changes) |
 | reminders | 20–100 | ~300 bytes | ~3,000 (Cloud Function polls) |
+| gamification | 1 | ~150 bytes | ~200 (live-subscribed while feature enabled) |
+| pokedex | 0–14 | ~100 bytes | ~200 (live-subscribed while feature enabled) |
 
 **Estimated Firestore cost per user per month**: < $0.01 at these volumes (well within free tier for <1000 users).
 

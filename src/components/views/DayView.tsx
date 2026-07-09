@@ -7,8 +7,6 @@ import { useSettings } from '../../contexts/SettingsContext';
 import {
   subscribeToTasksForDate,
   subscribeToOverdueTasks,
-  completeTask,
-  uncompleteTask,
   softDeleteTask,
   restoreTask,
   rescheduleOverdueTasks,
@@ -38,12 +36,20 @@ import BottomSheet from '../common/BottomSheet';
 import FAB from '../common/FAB';
 import { TaskListSkeleton } from '../common/Skeleton';
 import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut';
+import { useTaskCompletion } from '../../hooks/useTaskCompletion';
+import { getSpeciesById } from '../../data/gamificationContent';
+import CompanionWidget from '../gamification/CompanionWidget';
+import GamificationIntroBanner from '../gamification/GamificationIntroBanner';
 import './DayView.css';
 
 export default function DayView() {
   const { currentUser } = useAuth();
   const { showToast } = useToast();
   const { settings } = useSettings();
+  const { handleTaskComplete } = useTaskCompletion((award) => {
+    const species = getSpeciesById(award.newSpeciesId);
+    showToast(`Your companion evolved${species ? ` into ${species.name}` : ''}!`);
+  });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -346,15 +352,7 @@ export default function DayView() {
     if (!userId) return;
     const task = tasks.find((t) => t.id === taskId) || overdueTasks.find((t) => t.id === taskId);
     if (!task) return;
-
-    if (task.status === 'completed') {
-      await uncompleteTask(userId, taskId);
-      showToast(`"${task.name}" restored`);
-    } else {
-      await completeTask(userId, taskId);
-      await cancelRemindersForTask(userId, taskId);
-      showToast(`"${task.name}" completed`, () => uncompleteTask(userId, taskId));
-    }
+    await handleTaskComplete(task);
   }
 
   async function handleDelete(taskId: string) {
@@ -615,6 +613,8 @@ export default function DayView() {
           Today
         </button>
       )}
+
+      {settings.gamificationEnabled ? <CompanionWidget /> : <GamificationIntroBanner />}
 
       {/* Summary */}
       <div className="day-view-summary">
